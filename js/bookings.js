@@ -544,27 +544,135 @@ function dgCanRequestProductionUpdate(booking) {
   return ['Confirmed', 'Scheduled', 'On Shoot', 'Editing', 'Ready for Delivery'].includes(booking.status);
 }
 
-function dgProductionFollowUpPanel(booking) {
-  if (!dgCanRequestProductionUpdate(booking)) return '';
-  const alreadySent = dgProductionUpdateRequestsSent.has(booking.id);
-  return `
-    <div class="production-follow-up-card">
-      <div>
-        <p class="eyebrow">Need an update?</p>
-        <h3>Follow up on this project</h3>
-        <p>If you have been waiting for a progress update, let our team know and we will review your project status.</p>
+function dgProjectContactFallback() {
+  return {
+    name: 'Mark Dela Cruz',
+    role: 'Project Coordinator',
+    contactNumber: '09123456789',
+    email: 'mark.dgfilmco@gmail.com'
+  };
+}
+
+function dgExtractContactDetail(value) {
+  const text = String(value || '').trim();
+  if (!text) return {};
+  const email = (text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i) || [''])[0];
+  const contactNumber = (text.match(/(?:\+?63|0)9[\d\s-]{9,}/) || text.match(/\d[\d\s-]{6,}\d/) || [''])[0];
+  return {
+    contactNumber: contactNumber || (email ? '' : text),
+    email
+  };
+}
+
+function dgProjectContactDetails(booking) {
+  const fallback = dgProjectContactFallback();
+  const meetingName = String(booking.meetingContactName || '').trim();
+  const meetingRole = String(booking.meetingContactRole || '').trim();
+  const meetingDetail = dgExtractContactDetail(booking.meetingContactDetail);
+
+  if (meetingName || meetingRole || booking.meetingContactDetail) {
+    return {
+      name: meetingName || fallback.name,
+      role: meetingRole || fallback.role,
+      contactNumber: meetingDetail.contactNumber || fallback.contactNumber,
+      email: meetingDetail.email || fallback.email
+    };
+  }
+
+  const users = DGData.getJson(DGData.keys.users, []);
+  const staff = booking.assignedStaffId ? users.find((user) => user.id === booking.assignedStaffId) : null;
+  if (staff || booking.assignedStaffName) {
+    return {
+      name: staff?.fullName || staff?.name || booking.assignedStaffName || fallback.name,
+      role: staff?.position || staff?.jobTitle || 'Production Staff',
+      contactNumber: staff?.contactNumber || staff?.mobileNumber || staff?.phone || fallback.contactNumber,
+      email: staff?.email || fallback.email
+    };
+  }
+
+  return fallback;
+}
+
+function dgLatestUpdateRequestReply(booking) {
+  const replies = Array.isArray(booking.updateRequestReplies) ? booking.updateRequestReplies : [];
+  return replies
+    .slice()
+    .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))[0] || null;
+}
+
+function dgUpdateReplyRoleLabel(role) {
+  const value = String(role || '').trim();
+  if (!value) return 'Team';
+  if (value.toLowerCase() === 'staff') return 'Staff';
+  if (value.toLowerCase() === 'admin') return 'Admin';
+  return value;
+}
+
+function dgUpdateRequestReplyCard(booking) {
+  const reply = dgLatestUpdateRequestReply(booking);
+  if (!reply) {
+    return `
+      <div class="update-request-reply-card latest-response-card">
+        <h4>Latest Response</h4>
+        <p class="muted-text">No response yet. DG Film Co. will reply once your request is reviewed.</p>
       </div>
-      ${alreadySent
-        ? '<p class="production-follow-up-success" role="status">Update request sent. DG Film Co. will review your project status and get back to you.</p>'
-        : '<button class="btn ghost" type="button" data-request-production-update>Request an update</button>'}
+    `;
+  }
+  return `
+    <div class="update-request-reply-card latest-response-card" data-update-request-reply>
+      <h4>Latest Response</h4>
+      <dl class="project-support-details">
+        <div><dt>From</dt><dd>${dgEscape(reply.repliedBy || 'DG Film Co.')}</dd></div>
+        <div><dt>Role</dt><dd>${dgEscape(dgUpdateReplyRoleLabel(reply.role))}</dd></div>
+        <div class="wide"><dt>Message</dt><dd>&ldquo;${dgEscape(reply.message || 'No message provided.')}&rdquo;</dd></div>
+        <div><dt>Date</dt><dd>${dgFormatDateTime(reply.createdAt)}</dd></div>
+      </dl>
     </div>
   `;
 }
 
-function dgRequestProductionUpdate(booking) {
+function dgProductionFollowUpPanel(booking) {
+  if (!dgCanRequestProductionUpdate(booking)) return '';
+  const alreadySent = dgProductionUpdateRequestsSent.has(booking.id);
+  const contact = dgProjectContactDetails(booking);
+  return `
+    <div class="production-follow-up-card">
+      <div class="project-support-heading">
+        <p class="eyebrow">Project Support</p>
+      </div>
+      <div class="production-follow-up-main">
+        <h3>Follow up on this project</h3>
+        <p>Send a quick message if you want to check your project status.</p>
+        ${alreadySent
+          ? '<p class="production-follow-up-success" role="status">Update request sent. DG Film Co. will review your project status and get back to you.</p>'
+          : `<div class="production-follow-up-form">
+              <label>Message <span class="optional">optional</span>
+                <textarea rows="3" maxlength="500" data-production-update-message placeholder="Example: Hi, may we ask for an update on the editing status?"></textarea>
+              </label>
+              <button class="btn ghost" type="button" data-request-production-update>Send Update Request</button>
+            </div>`}
+      </div>
+      <div class="project-support-side">
+        <aside class="project-contact-card" aria-label="Project contact">
+          <h4>Project Contact</h4>
+          <dl class="project-support-details">
+            <div><dt>Name</dt><dd>${dgEscape(contact.name)}</dd></div>
+            <div><dt>Role</dt><dd>${dgEscape(contact.role)}</dd></div>
+            <div><dt>Contact Number</dt><dd>${dgEscape(contact.contactNumber)}</dd></div>
+            <div><dt>Email</dt><dd>${dgEscape(contact.email)}</dd></div>
+          </dl>
+        </aside>
+        ${dgUpdateRequestReplyCard(booking)}
+      </div>
+    </div>
+  `;
+}
+
+function dgRequestProductionUpdate(booking, note = '') {
   if (!booking || !dgCanRequestProductionUpdate(booking) || dgProductionUpdateRequestsSent.has(booking.id)) return false;
   dgProductionUpdateRequestsSent.add(booking.id);
-  const message = `Client requested a production update for booking ${booking.id}.`;
+  const cleanNote = String(note || '').trim();
+  const message = `Client requested a production update for booking ${booking.id}.${cleanNote ? `\nMessage: ${cleanNote}` : ''}`;
   dgNotifyAdmin('Production update requested', message, 'production', booking.id);
   if (booking.assignedStaffId) {
     dgClientNotification({
@@ -649,41 +757,87 @@ function dgClientPaymentSettings() {
 
 function dgPaymentMethodOptions() {
   const enabledMethods = dgClientPaymentSettings().methods;
-  const methods = enabledMethods.length ? enabledMethods : DG_PAYMENT_METHOD_OPTIONS;
   return [
     '<option value="">Choose mode of payment</option>',
-    ...methods.map((method) => `<option value="${dgEscape(method)}">${dgEscape(method)}</option>`)
+    ...enabledMethods.map((method) => `<option value="${dgEscape(method)}">${dgEscape(method)}</option>`)
   ].join('');
 }
 
-function dgPaymentInstructions() {
+function dgPaymentMethodDisplayName(method, settings = dgClientPaymentSettings()) {
+  return method === 'Other' ? (settings.other.name || 'Other Payment Method') : method;
+}
+
+function dgPaymentMethodDetailRows(method, settings = dgClientPaymentSettings()) {
+  if (method === 'GCash') {
+    return [
+      ['Account Name', settings.gcash.accountName],
+      ['Number', settings.gcash.number],
+      ['Instructions', settings.gcash.instructions]
+    ];
+  }
+  if (method === 'Bank Transfer') {
+    return [
+      ['Bank', settings.bank.bankName],
+      ['Account Name', settings.bank.accountName],
+      ['Account Number', settings.bank.accountNumber],
+      ['Instructions', settings.bank.instructions]
+    ];
+  }
+  if (method === 'Cash / On-site Payment') {
+    return [
+      ['Instructions', settings.cash.instructions]
+    ];
+  }
+  if (method === 'Other') {
+    return [
+      ['Instructions', settings.other.instructions]
+    ];
+  }
+  return [];
+}
+
+function dgPaymentMethodDetailsPanel(method, selectedMethod, settings = dgClientPaymentSettings()) {
+  const rows = dgPaymentMethodDetailRows(method, settings).filter(([, value]) => String(value || '').trim());
+  const isSelected = selectedMethod === method;
+  return `
+    <div class="payment-method-details-panel" data-payment-method-details="${dgEscape(method)}" ${isSelected ? '' : 'hidden'}>
+      <strong>${dgEscape(dgPaymentMethodDisplayName(method, settings))}</strong>
+      ${rows.length
+        ? rows.map(([label, value]) => `<span>${dgEscape(label)}: ${dgEscape(value)}</span>`).join('')
+        : '<span>DG Film Co. will confirm any additional instructions for this payment method.</span>'}
+    </div>
+  `;
+}
+
+function dgPaymentInstructions(options = {}) {
+  const { compact = false, context = 'default' } = options;
   const settings = dgClientPaymentSettings();
   const methods = settings.methods;
-  const acceptsGCash = methods.includes('GCash');
-  const acceptsBank = methods.includes('Bank Transfer');
-  const acceptsCash = methods.includes('Cash / On-site Payment');
-  const acceptsOther = methods.includes('Other');
-  const cashInstructions = acceptsCash ? settings.cash.instructions : '';
-  const otherMethodName = acceptsOther ? settings.other.name : '';
-  const otherInstructions = acceptsOther ? settings.other.instructions : '';
   if (!methods.length) {
     return `
-      <div class="payment-guidance-card">
-        <p class="eyebrow">Payment Details</p>
-        <p>Payment details will be confirmed by DG Film Co. after your booking is approved.</p>
-        <p>Please upload a receipt once your payment has been completed.</p>
+      <div class="payment-guidance-card${compact ? ' embedded-payment-methods' : ''}">
+        <p class="eyebrow">${context === 'balance' ? 'Choose Payment Method' : 'Payment Details'}</p>
+        <p>Payment details are not available yet. Please wait for DG Film Co. to provide payment instructions.</p>
       </div>
     `;
   }
+  const selectedMethod = methods.length === 1 ? methods[0] : '';
   return `
-    <div class="payment-guidance-card">
-      <p class="eyebrow">Payment Details</p>
-      ${methods.length ? `<p><strong>Accepted Payment Methods:</strong> ${dgEscape(methods.join(', '))}</p>` : ''}
-      ${acceptsGCash ? `<div class="payment-guidance-group"><strong>GCash</strong>${settings.gcash.accountName ? `<span>Account Name: ${dgEscape(settings.gcash.accountName)}</span>` : ''}${settings.gcash.number ? `<span>Number: ${dgEscape(settings.gcash.number)}</span>` : ''}${settings.gcash.instructions ? `<span>Instructions: ${dgEscape(settings.gcash.instructions)}</span>` : ''}</div>` : ''}
-      ${acceptsBank ? `<div class="payment-guidance-group"><strong>Bank Transfer</strong>${settings.bank.bankName ? `<span>Bank: ${dgEscape(settings.bank.bankName)}</span>` : ''}${settings.bank.accountName ? `<span>Account Name: ${dgEscape(settings.bank.accountName)}</span>` : ''}${settings.bank.accountNumber ? `<span>Account Number: ${dgEscape(settings.bank.accountNumber)}</span>` : ''}${settings.bank.instructions ? `<span>Instructions: ${dgEscape(settings.bank.instructions)}</span>` : ''}</div>` : ''}
-      ${acceptsCash ? `<div class="payment-guidance-group"><strong>Cash / On-site Payment</strong>${cashInstructions ? `<span>Instructions: ${dgEscape(cashInstructions)}</span>` : ''}</div>` : ''}
-      ${acceptsOther ? `<div class="payment-guidance-group"><strong>${dgEscape(otherMethodName || 'Other Payment Method')}</strong>${otherInstructions ? `<span>Instructions: ${dgEscape(otherInstructions)}</span>` : ''}</div>` : ''}
-      <p>Please upload a receipt once your payment has been completed.</p>
+    <div class="payment-guidance-card payment-method-selector-card${compact ? ' embedded-payment-methods' : ''}" data-payment-method-selector data-selected-payment-method="${dgEscape(selectedMethod)}">
+      <p class="eyebrow">${context === 'balance' ? 'Choose Payment Method' : 'Payment Details'}</p>
+      <p><strong>Accepted methods:</strong> ${dgEscape(methods.map((method) => dgPaymentMethodDisplayName(method, settings)).join(', '))}</p>
+      <div class="payment-method-options" role="radiogroup" aria-label="Accepted payment methods">
+        ${methods.map((method) => `
+          <button class="payment-method-option${selectedMethod === method ? ' selected' : ''}" type="button" role="radio" aria-checked="${selectedMethod === method ? 'true' : 'false'}" data-payment-method-option="${dgEscape(method)}">
+            <span>${dgEscape(dgPaymentMethodDisplayName(method, settings))}</span>
+          </button>
+        `).join('')}
+      </div>
+      <p class="payment-method-helper" data-payment-method-helper ${selectedMethod ? 'hidden' : ''}>Please choose a payment method to see the payment details.</p>
+      <div class="payment-method-details-wrap">
+        ${methods.map((method) => dgPaymentMethodDetailsPanel(method, selectedMethod, settings)).join('')}
+      </div>
+      ${context === 'balance' ? '' : '<p>Please upload a receipt once your payment has been completed.</p>'}
     </div>
   `;
 }
@@ -746,79 +900,72 @@ function dgLegacyPaymentAmount(booking) {
   return Number(service?.startingPrice || 0);
 }
 
+function dgReceiptSubmissionModal(selectedType, amount, remaining) {
+  return `
+    <button class="btn primary payment-action-button" type="button" data-open-payment-modal>Submit Payment Receipt</button>
+    <p class="payment-choice-helper error-text" data-payment-method-required-helper hidden>Please choose a payment method before submitting your receipt.</p>
+    <div class="payment-modal-backdrop" data-payment-modal hidden>
+      <div class="payment-receipt-modal" role="dialog" aria-modal="true" aria-label="Receipt Submission">
+        <form class="payment-modal-form" data-payment-modal-form novalidate>
+          <input type="hidden" name="paymentMethod" value="" data-modal-payment-method-input />
+          <div class="payment-modal-header">
+            <div>
+              <p class="eyebrow">Receipt Submission</p>
+              <h2>Receipt Submission</h2>
+              <p>Complete the details below and upload your payment receipt for review.</p>
+            </div>
+            <button class="modal-close-btn payment-modal-close" type="button" data-close-payment-modal aria-label="Close payment receipt form">&times;</button>
+          </div>
+          <div class="payment-modal-summary receipt-submission-summary">
+            <div><span>Payment Method</span><strong data-modal-payment-method-label>Choose a method</strong></div>
+            <div><span>Payment Type</span><strong data-modal-payment-type>${dgPaymentLabel(selectedType)}</strong></div>
+            <div><span>Amount to Pay</span><strong data-modal-payment-amount>${amount > 0 ? dgMoney(amount) : 'Enter amount below'}</strong></div>
+            <div><span>Remaining Balance After Payment</span><strong data-modal-payment-remaining>${dgMoney(remaining || 0)}</strong></div>
+          </div>
+          <div class="payment-modal-grid receipt-submission-grid">
+            <div class="payment-modal-column">
+              <label>Payment Date
+                <input type="date" name="paymentDate" max="${dgEscape(dgToday())}" />
+                <span class="field-error" data-error-for="paymentDate"></span>
+              </label>
+              <label>Payment Reference Number
+                <input type="text" name="referenceNumber" placeholder="GCash, bank, or receipt reference" />
+                <span class="field-error" data-error-for="referenceNumber"></span>
+              </label>
+              <label class="receipt-upload-field">Receipt File
+                <input type="file" name="receiptFile" accept=".jpg,.jpeg,.png,.pdf" />
+                <small class="field-hint field-helper">JPG, PNG, or PDF up to 5MB.</small>
+                <small class="field-hint" data-modal-receipt-hint></small>
+                <span class="field-error" data-error-for="receiptFile"></span>
+              </label>
+            </div>
+            <div class="payment-modal-column payment-modal-side">
+              <label>Notes <span class="optional">Optional</span>
+                <textarea name="notes" rows="7" placeholder="Add any notes that may help us review your receipt."></textarea>
+              </label>
+            </div>
+          </div>
+          <span class="field-error" data-error-for="amountPaid"></span>
+          <div class="payment-action-row">
+            <button class="btn ghost" type="button" data-close-payment-modal>Cancel</button>
+            <button class="btn primary" type="submit">Upload Receipt</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  `;
+}
+
 function dgPaymentAction(booking, requestedType = '') {
   dgNormalizeBookingDefaults(booking);
   const type = dgPaymentUploadType(booking, requestedType);
   if (!type) return '';
   const isBalance = type === 'balance';
-  const status = isBalance ? booking.invoice?.balanceStatus : booking.invoice?.downPaymentStatus;
-  const verb = ['Needs Resubmission', 'Rejected'].includes(status) || booking.paymentStatus === 'Needs Resubmission' ? 'Resubmit' : 'Upload';
-  const label = verb === 'Resubmit' ? 'Resubmit Receipt' : 'Upload Receipt';
   if (!booking.invoice) {
     const amount = dgLegacyPaymentAmount(booking);
     return `
       <div class="payment-choice-panel" data-payment-choice-panel data-booking-id="${dgEscape(booking.id)}" data-total="${dgEscape(String(amount))}" data-minimum="${dgEscape(String(amount))}" data-balance="0" data-selected-payment-option="${type}" data-legacy-payment>
-        <button class="btn primary payment-action-button" type="button" data-open-payment-modal>${label}</button>
-        <div class="payment-modal-backdrop" data-payment-modal hidden>
-          <div class="payment-receipt-modal" role="dialog" aria-modal="true" aria-labelledby="paymentReceiptTitle">
-            <form class="payment-modal-form" data-payment-modal-form novalidate>
-              <div class="payment-modal-header">
-                <div>
-                  <p class="eyebrow">Receipt Submission</p>
-                  <h2 id="paymentReceiptTitle">Upload Receipt</h2>
-                  <p>Submit your payment receipt without leaving this project page.</p>
-                </div>
-                <button class="modal-close-btn payment-modal-close" type="button" data-close-payment-modal aria-label="Close payment receipt form">&times;</button>
-              </div>
-              <div class="payment-modal-summary">
-                <div><span>Payment Type</span><strong data-modal-payment-type>${dgPaymentLabel(type)}</strong></div>
-                <div><span>Amount to Pay</span><strong data-modal-payment-amount>${amount > 0 ? dgMoney(amount) : 'Enter amount below'}</strong></div>
-              </div>
-              <div class="payment-modal-grid">
-                <div class="payment-modal-column">
-                  <label>Amount Paid
-                    <input type="number" name="legacyAmountPaid" min="1" step="0.01" value="${amount > 0 ? dgEscape(String(amount)) : ''}" placeholder="0.00" data-legacy-payment-amount />
-                    <span class="field-error" data-error-for="amountPaid"></span>
-                  </label>
-                  <label>Mode of Payment
-                    <small class="field-hint">Select the method you used for this payment.</small>
-                    <select name="paymentMethod">
-                      ${dgPaymentMethodOptions()}
-                    </select>
-                    <span class="field-error" data-error-for="paymentMethod"></span>
-                  </label>
-                  <label>Payment Date
-                    <input type="date" name="paymentDate" max="${dgEscape(dgToday())}" />
-                    <span class="field-error" data-error-for="paymentDate"></span>
-                  </label>
-                  <label>Payment Reference Number
-                    <input type="text" name="referenceNumber" placeholder="GCash, bank, or receipt reference" />
-                    <span class="field-error" data-error-for="referenceNumber"></span>
-                  </label>
-                  <label class="receipt-upload-field">Receipt File
-                    <input type="file" name="receiptFile" accept=".jpg,.jpeg,.png,.pdf" />
-                    <small class="field-hint field-helper">JPG, PNG, or PDF up to 5MB.</small>
-                    <small class="field-hint" data-modal-receipt-hint></small>
-                    <span class="field-error" data-error-for="receiptFile"></span>
-                  </label>
-                </div>
-                <div class="payment-modal-column payment-modal-side">
-                  <label>Notes <span class="optional">Optional</span>
-                    <textarea name="notes" rows="7" placeholder="Add any notes that may help us review your receipt."></textarea>
-                  </label>
-                  <div class="payment-modal-reminder">
-                    <strong>Before submitting</strong>
-                    <span>Make sure the receipt clearly shows the amount paid and reference number.</span>
-                  </div>
-                </div>
-              </div>
-              <div class="payment-action-row">
-                <button class="btn ghost" type="button" data-close-payment-modal>Cancel</button>
-                <button class="btn primary" type="submit">Submit Receipt</button>
-              </div>
-            </form>
-          </div>
-        </div>
+        ${dgReceiptSubmissionModal(type, amount, 0)}
       </div>
     `;
   }
@@ -829,66 +976,64 @@ function dgPaymentAction(booking, requestedType = '') {
   const remaining = isBalance ? Math.max(balance - amount, 0) : Math.max(total - amount, 0);
   return `
     <div class="payment-choice-panel" data-payment-choice-panel data-booking-id="${dgEscape(booking.id)}" data-total="${dgEscape(String(total))}" data-minimum="${dgEscape(String(minimum))}" data-balance="${dgEscape(String(balance))}" data-selected-payment-option="${type}">
-      <button class="btn primary payment-action-button" type="button" data-open-payment-modal>${label}</button>
-      <div class="payment-modal-backdrop" data-payment-modal hidden>
-        <div class="payment-receipt-modal" role="dialog" aria-modal="true" aria-labelledby="paymentReceiptTitle">
-          <form class="payment-modal-form" data-payment-modal-form novalidate>
-            <div class="payment-modal-header">
-              <div>
-                <p class="eyebrow">Receipt Submission</p>
-                <h2 id="paymentReceiptTitle">Upload Receipt</h2>
-                <p>Submit your payment receipt without leaving this project page.</p>
-              </div>
-              <button class="modal-close-btn payment-modal-close" type="button" data-close-payment-modal aria-label="Close payment receipt form">&times;</button>
-            </div>
-            <div class="payment-modal-summary">
-              <div><span>Payment Type</span><strong data-modal-payment-type>${dgPaymentLabel(type)}</strong></div>
-              <div><span>Amount to Pay</span><strong data-modal-payment-amount>${dgMoney(amount)}</strong></div>
-              <div><span>Remaining Balance After Payment</span><strong data-modal-payment-remaining>${dgMoney(remaining)}</strong></div>
-            </div>
-            <div class="payment-modal-grid">
-              <div class="payment-modal-column">
-                <label>Mode of Payment
-                  <small class="field-hint">Select the method you used for this payment.</small>
-                  <select name="paymentMethod">
-                    ${dgPaymentMethodOptions()}
-                  </select>
-                  <span class="field-error" data-error-for="paymentMethod"></span>
-                </label>
-                <label>Payment Date
-                  <input type="date" name="paymentDate" max="${dgEscape(dgToday())}" />
-                  <span class="field-error" data-error-for="paymentDate"></span>
-                </label>
-                <label>Payment Reference Number
-                  <input type="text" name="referenceNumber" placeholder="GCash, bank, or receipt reference" />
-                  <span class="field-error" data-error-for="referenceNumber"></span>
-                </label>
-                <label class="receipt-upload-field">Receipt File
-                  <input type="file" name="receiptFile" accept=".jpg,.jpeg,.png,.pdf" />
-                  <small class="field-hint field-helper">JPG, PNG, or PDF up to 5MB.</small>
-                  <small class="field-hint" data-modal-receipt-hint></small>
-                  <span class="field-error" data-error-for="receiptFile"></span>
-                </label>
-              </div>
-              <div class="payment-modal-column payment-modal-side">
-                <label>Notes <span class="optional">Optional</span>
-                  <textarea name="notes" rows="7" placeholder="Add any notes that may help us review your receipt."></textarea>
-                </label>
-                <div class="payment-modal-reminder">
-                  <strong>Before submitting</strong>
-                  <span>Make sure the receipt clearly shows the amount paid and reference number.</span>
-                </div>
-              </div>
-            </div>
-            <span class="field-error" data-error-for="amountPaid"></span>
-            <div class="payment-action-row">
-              <button class="btn ghost" type="button" data-close-payment-modal>Cancel</button>
-              <button class="btn primary" type="submit">Submit Receipt</button>
-            </div>
-          </form>
+      ${dgReceiptSubmissionModal(type, amount, remaining)}
+    </div>
+  `;
+}
+
+function dgPaymentHistory(booking) {
+  const payments = dgPayments()
+    .filter((payment) => payment.bookingId === booking.id)
+    .sort((a, b) => new Date(b.createdAt || b.paymentDate || 0) - new Date(a.createdAt || a.paymentDate || 0));
+  if (!payments.length) return '';
+  return `
+    <section class="payment-history-section">
+      <h4>Payment History</h4>
+      <div class="payment-history-list">
+        ${payments.map((payment, index) => `
+          <details class="payment-history-item"${index === 0 && payment.status !== 'Verified' ? ' open' : ''}>
+            <summary>
+              <span>${payment.status === 'Verified' ? 'Verified: ' : ''}${dgEscape(payment.paymentType || 'Payment')}</span>
+              <strong>${dgMoney(payment.amountPaid)}</strong>
+              <span>${dgEscape(payment.paymentMethod || 'Not set')}</span>
+              <span>${dgEscape(payment.status || 'Pending')}</span>
+              <span>${dgFormatDate(payment.paymentDate)}</span>
+            </summary>
+            <dl class="details-grid compact-details">
+              <div><dt>Reference Number</dt><dd>${dgEscape(payment.referenceNumber || 'Not set')}</dd></div>
+              <div><dt>Mode of Payment</dt><dd>${dgEscape(payment.paymentMethod || 'Not set')}</dd></div>
+              <div><dt>Receipt File</dt><dd>${dgEscape(payment.receiptFileName || 'Not set')}</dd></div>
+              <div><dt>Submitted At</dt><dd>${dgFormatDateTime(payment.createdAt)}</dd></div>
+            </dl>
+          </details>
+        `).join('')}
+      </div>
+    </section>
+  `;
+}
+
+function dgBalancePaymentPanel(booking) {
+  const invoice = booking.invoice;
+  const total = Number(invoice.totalAmount || 0);
+  const paidAmount = Math.max(total - Number(invoice.balanceAmount || 0), 0);
+  const balance = Number(invoice.balanceAmount || 0);
+  return `
+    <section class="balance-payment-panel">
+      <div class="balance-payment-header">
+        <div>
+          <p class="eyebrow">Remaining Balance Payment</p>
+          <h4>Settle your remaining balance</h4>
+          <p>Your down payment has been verified. Please settle the remaining balance to complete your booking payment.</p>
         </div>
       </div>
-    </div>
+      <div class="invoice-summary payment-dynamic-summary">
+        <div class="amount-large"><span>Total Package Amount</span><strong>${dgMoney(total)}</strong></div>
+        <div><span>Paid Amount</span><strong>${dgMoney(paidAmount)}</strong></div>
+        <div class="remaining-balance-highlight"><span>Remaining Balance</span><strong>${dgMoney(balance)}</strong></div>
+      </div>
+      ${dgPaymentInstructions({ compact: true, context: 'balance' })}
+      ${dgPaymentAction(booking, 'balance').replace('Submit Payment Receipt', 'Submit Balance Payment')}
+    </section>
   `;
 }
 
@@ -927,64 +1072,8 @@ function dgPaymentSelectionPanel(booking) {
         <input type="number" min="${dgEscape(String(minimum))}" max="${dgEscape(String(total))}" step="0.01" value="${dgEscape(String(customStart))}" data-custom-payment-amount aria-label="Custom payment amount" />
         <small class="field-hint">Minimum allowed: ${dgMoney(minimum)}</small>
       </label>
-      <button class="btn primary payment-action-button" type="button" data-payment-choice-link data-open-payment-modal data-payment-modal-option="downpayment" data-payment-modal-amount="${dgEscape(String(minimum))}" aria-disabled="false">Upload Receipt</button>
-      <div class="payment-modal-backdrop" data-payment-modal hidden>
-        <div class="payment-receipt-modal" role="dialog" aria-modal="true" aria-labelledby="paymentReceiptTitle">
-          <form class="payment-modal-form" data-payment-modal-form novalidate>
-            <div class="payment-modal-header">
-              <div>
-                <p class="eyebrow">Receipt Submission</p>
-                <h2 id="paymentReceiptTitle">Upload Receipt</h2>
-                <p>Submit your payment receipt without leaving this project page.</p>
-              </div>
-              <button class="modal-close-btn payment-modal-close" type="button" data-close-payment-modal aria-label="Close payment receipt form">&times;</button>
-            </div>
-            <div class="payment-modal-summary">
-              <div><span>Payment Type</span><strong data-modal-payment-type>Down Payment</strong></div>
-              <div><span>Amount to Pay</span><strong data-modal-payment-amount>${dgMoney(minimum)}</strong></div>
-              <div><span>Remaining Balance After Payment</span><strong data-modal-payment-remaining>${dgMoney(Math.max(total - minimum, 0))}</strong></div>
-            </div>
-            <div class="payment-modal-grid">
-              <div class="payment-modal-column">
-                <label>Mode of Payment
-                  <small class="field-hint">Select the method you used for this payment.</small>
-                  <select name="paymentMethod">
-                    ${dgPaymentMethodOptions()}
-                  </select>
-                  <span class="field-error" data-error-for="paymentMethod"></span>
-                </label>
-                <label>Payment Date
-                  <input type="date" name="paymentDate" max="${dgEscape(dgToday())}" />
-                  <span class="field-error" data-error-for="paymentDate"></span>
-                </label>
-                <label>Payment Reference Number
-                  <input type="text" name="referenceNumber" placeholder="GCash, bank, or receipt reference" />
-                  <span class="field-error" data-error-for="referenceNumber"></span>
-                </label>
-                <label class="receipt-upload-field">Receipt File
-                  <input type="file" name="receiptFile" accept=".jpg,.jpeg,.png,.pdf" />
-                  <small class="field-hint field-helper">JPG, PNG, or PDF up to 5MB.</small>
-                  <small class="field-hint" data-modal-receipt-hint></small>
-                  <span class="field-error" data-error-for="receiptFile"></span>
-                </label>
-              </div>
-              <div class="payment-modal-column payment-modal-side">
-                <label>Notes <span class="optional">Optional</span>
-                  <textarea name="notes" rows="7" placeholder="Add any notes that may help us review your receipt."></textarea>
-                </label>
-                <div class="payment-modal-reminder">
-                  <strong>Before submitting</strong>
-                  <span>Make sure the receipt clearly shows the amount paid and reference number.</span>
-                </div>
-              </div>
-            </div>
-            <span class="field-error" data-error-for="amountPaid"></span>
-            <div class="payment-action-row">
-              <button class="btn ghost" type="button" data-close-payment-modal>Cancel</button>
-              <button class="btn primary" type="submit">Submit Receipt</button>
-            </div>
-          </form>
-        </div>
+      <div data-payment-choice-link data-payment-modal-option="downpayment" data-payment-modal-amount="${dgEscape(String(minimum))}" aria-disabled="false">
+        ${dgReceiptSubmissionModal('downpayment', minimum, Math.max(total - minimum, 0))}
       </div>
     </div>
   `;
@@ -1032,6 +1121,7 @@ function dgUpdatePaymentChoicePanel(panel) {
     link.dataset.paymentModalOption = selected;
     link.dataset.paymentModalAmount = String(amount);
   }
+  dgUpdateReceiptSubmissionModal(panel);
 }
 
 function dgPaymentChoiceValue(panel) {
@@ -1057,22 +1147,83 @@ function dgPaymentChoiceValue(panel) {
   };
 }
 
+function dgUpdatePaymentMethodSelector(selector, selectedMethod) {
+  if (!selector) return;
+  selector.dataset.selectedPaymentMethod = selectedMethod || '';
+  selector.querySelectorAll('[data-payment-method-option]').forEach((option) => {
+    const isSelected = option.dataset.paymentMethodOption === selectedMethod;
+    option.classList.toggle('selected', isSelected);
+    option.setAttribute('aria-checked', isSelected ? 'true' : 'false');
+  });
+  selector.querySelectorAll('[data-payment-method-details]').forEach((details) => {
+    details.hidden = details.dataset.paymentMethodDetails !== selectedMethod;
+  });
+  const helper = selector.querySelector('[data-payment-method-helper]');
+  if (helper) helper.hidden = Boolean(selectedMethod);
+}
+
+function dgSelectedClientPaymentMethod(scope = document) {
+  const selector = scope.querySelector?.('[data-payment-method-selector][data-selected-payment-method]');
+  const selectedMethod = selector?.dataset.selectedPaymentMethod || '';
+  const enabledMethods = dgClientPaymentSettings().methods;
+  return enabledMethods.includes(selectedMethod) ? selectedMethod : '';
+}
+
+function dgUpdateReceiptSubmissionModal(panel) {
+  const modal = panel?.querySelector('[data-payment-modal]');
+  const form = modal?.querySelector('[data-payment-modal-form]');
+  if (!form) return;
+  const choice = dgPaymentChoiceValue(panel);
+  if (!choice) return;
+  const amountPaid = choice.amountPaid;
+  const selectedType = choice.selectedType || 'downpayment';
+  const remainingAfterPayment = choice.remainingAfterPayment;
+  const selectedMethod = dgSelectedClientPaymentMethod(document);
+  const methodInput = form.querySelector('[data-modal-payment-method-input]');
+  const methodLabel = modal.querySelector('[data-modal-payment-method-label]');
+  const typeLabel = modal.querySelector('[data-modal-payment-type]');
+  const amountLabel = modal.querySelector('[data-modal-payment-amount]');
+  const remainingLabel = modal.querySelector('[data-modal-payment-remaining]');
+
+  modal.dataset.paymentType = selectedType;
+  modal.dataset.paymentAmount = String(amountPaid);
+  form.dataset.paymentType = selectedType;
+  form.dataset.paymentAmount = String(amountPaid);
+  if (methodInput) methodInput.value = selectedMethod;
+  if (methodLabel) methodLabel.textContent = selectedMethod || 'Choose a method';
+  if (typeLabel) typeLabel.textContent = dgPaymentLabel(selectedType);
+  if (amountLabel) amountLabel.textContent = amountPaid > 0 ? dgMoney(amountPaid) : 'Enter amount below';
+  if (remainingLabel) remainingLabel.textContent = dgMoney(remainingAfterPayment);
+}
+
 function dgOpenPaymentReceiptModal(panel, booking) {
   const modal = panel?.querySelector('[data-payment-modal]');
   if (!modal) return;
   const choice = dgPaymentChoiceValue(panel);
   if (!choice) return;
-  const legacyAmountInput = modal.querySelector('[data-legacy-payment-amount]');
-  if (!legacyAmountInput && ((choice.selectedType !== 'balance' && choice.amountPaid < choice.minimum) || choice.amountPaid > choice.total)) {
+  if ((choice.selectedType !== 'balance' && choice.amountPaid < choice.minimum) || choice.amountPaid > choice.total) {
     dgUpdatePaymentChoicePanel(panel);
     return;
   }
+  const selectedMethod = dgSelectedClientPaymentMethod(document);
+  const methodHelper = panel.querySelector('[data-payment-method-required-helper]');
+  if (!selectedMethod) {
+    if (methodHelper) methodHelper.hidden = false;
+    const selectorHelper = document.querySelector('[data-payment-method-selector] [data-payment-method-helper]');
+    if (selectorHelper) {
+      selectorHelper.textContent = 'Please choose a payment method before submitting your receipt.';
+      selectorHelper.hidden = false;
+    }
+    return;
+  }
+  if (methodHelper) methodHelper.hidden = true;
   const form = modal.querySelector('[data-payment-modal-form]');
   if (form) {
     form.reset();
     dgClearFieldErrors(form);
     if (form.paymentDate) form.paymentDate.max = dgToday();
   }
+  dgUpdateReceiptSubmissionModal(panel);
   modal.dataset.paymentType = choice.selectedType;
   modal.dataset.paymentAmount = String(choice.amountPaid);
   const type = modal.querySelector('[data-modal-payment-type]');
@@ -1080,7 +1231,7 @@ function dgOpenPaymentReceiptModal(panel, booking) {
   const remaining = modal.querySelector('[data-modal-payment-remaining]');
   const hint = modal.querySelector('[data-modal-receipt-hint]');
   if (type) type.textContent = dgPaymentLabel(choice.selectedType);
-  if (amount) amount.textContent = legacyAmountInput && !choice.amountPaid ? 'Enter amount below' : dgMoney(choice.amountPaid);
+  if (amount) amount.textContent = dgMoney(choice.amountPaid);
   if (remaining) remaining.textContent = dgMoney(choice.remainingAfterPayment);
   if (hint) hint.textContent = '';
   modal.hidden = false;
@@ -1105,11 +1256,19 @@ function dgValidatePaymentReceiptForm(form, booking, selectedType, amountPaid) {
   const extension = file ? file.name.split('.').pop().toLowerCase() : '';
   const total = Number(booking.invoice?.totalAmount || 0);
   const minimum = Number(booking.invoice?.downPaymentAmount || total * 0.5 || 0);
+  const referenceNumber = form.referenceNumber.value.trim();
+  const normalizedType = selectedType === 'balance'
+    ? 'Balance Payment'
+    : selectedType === 'full'
+      ? 'Full Payment'
+      : amountPaid >= total && total > 0
+        ? 'Full Payment'
+        : 'Down Payment';
 
   if (!form.paymentMethod || !form.paymentMethod.value) { dgSetFieldError(form, 'paymentMethod', 'Mode of payment is required.'); valid = false; }
   if (!form.paymentDate.value) { dgSetFieldError(form, 'paymentDate', 'Payment date is required.'); valid = false; }
   if (form.paymentDate.value && dgIsFutureDate(form.paymentDate.value)) { dgSetFieldError(form, 'paymentDate', 'Payment date cannot be in the future.'); valid = false; }
-  if (!form.referenceNumber.value.trim()) { dgSetFieldError(form, 'referenceNumber', 'Payment reference number is required.'); valid = false; }
+  if (!referenceNumber) { dgSetFieldError(form, 'referenceNumber', 'Payment reference number is required.'); valid = false; }
   if (!file) { dgSetFieldError(form, 'receiptFile', 'Receipt file is required.'); valid = false; }
   if (file && !allowedTypes.includes(extension)) { dgSetFieldError(form, 'receiptFile', 'Receipt must be jpg, jpeg, png, or pdf.'); valid = false; }
   if (file && file.size > 5 * 1024 * 1024) { dgSetFieldError(form, 'receiptFile', 'Receipt file must be 5MB or smaller.'); valid = false; }
@@ -1117,6 +1276,31 @@ function dgValidatePaymentReceiptForm(form, booking, selectedType, amountPaid) {
   if (selectedType !== 'balance' && amountPaid < minimum) { dgSetFieldError(form, 'amountPaid', 'Payment amount must be at least 50% of the total package amount.'); valid = false; }
   if (selectedType !== 'balance' && total > 0 && amountPaid > total) { dgSetFieldError(form, 'amountPaid', 'Payment amount cannot exceed the total package amount.'); valid = false; }
   if (selectedType === 'full' && total > 0 && amountPaid !== total) { dgSetFieldError(form, 'amountPaid', `Full payment must match the total package amount of ${dgMoney(total)}.`); valid = false; }
+  if (booking.invoice && selectedType !== 'balance' && booking.invoice.downPaymentStatus === 'Verified') {
+    dgSetFieldError(form, 'amountPaid', 'Down payment is already verified. Please submit the remaining balance instead.');
+    valid = false;
+  }
+  if (booking.invoice && selectedType === 'balance' && booking.invoice.downPaymentStatus !== 'Verified') {
+    dgSetFieldError(form, 'amountPaid', 'Balance payment is available after the down payment is verified.');
+    valid = false;
+  }
+  if (booking.invoice && selectedType === 'balance' && booking.invoice.balanceStatus === 'Pending Verification') {
+    dgSetFieldError(form, 'amountPaid', 'Balance payment receipt submitted for admin verification.');
+    valid = false;
+  }
+  const duplicatePayment = file && dgPayments().some((payment) => (
+    payment.bookingId === booking.id &&
+    ['Pending Verification', 'Verified'].includes(payment.status) &&
+    String(payment.paymentType || '').trim() === normalizedType &&
+    Number(payment.amountPaid || 0) === Number(amountPaid || 0) &&
+    String(payment.referenceNumber || '').trim().toLowerCase() === referenceNumber.toLowerCase() &&
+    String(payment.receiptFileName || '').trim().toLowerCase() === String(file.name || '').trim().toLowerCase() &&
+    Number(payment.receiptFileSize || 0) === Number(file.size || 0)
+  ));
+  if (duplicatePayment) {
+    dgSetFieldError(form, 'referenceNumber', 'This receipt appears to have already been submitted.');
+    valid = false;
+  }
 
   return valid;
 }
@@ -1380,6 +1564,12 @@ function dgPaymentDetails(booking) {
     const dpAction = dgPaymentAction(booking, 'downpayment');
     const balAction = dgPaymentAction(booking, 'balance');
     const initialPaymentChoices = dgPaymentUploadType(booking, 'downpayment') === 'downpayment';
+    const focusedBalancePayment = dpStatus === 'Verified' && balStatus !== 'Verified';
+    const paymentHistoryHtml = dgPaymentHistory(booking);
+    const pendingBalanceMessage = focusedBalancePayment && balStatus === 'Pending Verification'
+      ? '<div class="empty-state">Balance payment receipt submitted for admin verification.</div>'
+      : '';
+    const balancePaymentHtml = focusedBalancePayment && balanceDue ? dgBalancePaymentPanel(booking) : '';
 
     const readyForDelivery = booking.status === 'Ready for Delivery';
     const deliveryLocked = readyForDelivery && !fullyPaid;
@@ -1415,7 +1605,7 @@ function dgPaymentDetails(booking) {
           </div>
           ${dgBadge(invoice.invoiceStatus)}
         </div>
-        ${dgPaymentInstructions()}
+        ${focusedBalancePayment ? '' : dgPaymentInstructions()}
         ${dgPaymentReceiptFeedback ? `<div class="payment-inline-success" role="status">${dgEscape(dgPaymentReceiptFeedback)}</div>` : ''}
         ${initialPaymentChoices ? dgPaymentSelectionPanel(booking) : `
         <div class="invoice-summary">
@@ -1433,7 +1623,10 @@ function dgPaymentDetails(booking) {
         </div>` : ''}
         ${!initialPaymentChoices ? `<p class="table-helper">${dgEscape(invoice.dueNote)}</p>` : ''}
         ${statusMessages}
-        ${!fullyPaid && ((initialPaymentChoices ? '' : dpAction) || balAction) ? `<div class="invoice-actions">${initialPaymentChoices ? '' : dpAction}${balAction}</div>` : ''}
+        ${!initialPaymentChoices ? paymentHistoryHtml : ''}
+        ${pendingBalanceMessage}
+        ${balancePaymentHtml}
+        ${!initialPaymentChoices && !focusedBalancePayment && !fullyPaid && (dpAction || balAction) ? `<div class="invoice-actions">${dpAction}${balAction}</div>` : ''}
       </article>
     `;
   }
@@ -1916,6 +2109,9 @@ function dgRenderBookingDetails() {
     </div>
   `;
 
+  panel.querySelectorAll('[data-payment-method-selector]').forEach((selector) => {
+    dgUpdatePaymentMethodSelector(selector, selector.dataset.selectedPaymentMethod || '');
+  });
   panel.querySelectorAll('[data-payment-choice-panel]').forEach(dgUpdatePaymentChoicePanel);
   panel.addEventListener('click', (event) => {
     const disabledPaymentLink = event.target.closest('[data-payment-choice-link][aria-disabled="true"]');
@@ -1933,6 +2129,17 @@ function dgRenderBookingDetails() {
       dgClosePaymentReceiptModal(modalBackdrop);
       return;
     }
+    const paymentMethodOption = event.target.closest('[data-payment-method-option]');
+    if (paymentMethodOption) {
+      const selector = paymentMethodOption.closest('[data-payment-method-selector]');
+      dgUpdatePaymentMethodSelector(selector, paymentMethodOption.dataset.paymentMethodOption || '');
+      panel.querySelectorAll('[data-payment-choice-panel]').forEach((paymentPanel) => {
+        const helper = paymentPanel.querySelector('[data-payment-method-required-helper]');
+        if (helper) helper.hidden = true;
+        dgUpdateReceiptSubmissionModal(paymentPanel);
+      });
+      return;
+    }
     const uploadButton = event.target.closest('[data-open-payment-modal]');
     if (uploadButton) {
       event.preventDefault();
@@ -1948,14 +2155,16 @@ function dgRenderBookingDetails() {
     dgUpdatePaymentChoicePanel(paymentPanel);
   });
   panel.addEventListener('change', (event) => {
+    if (event.target.closest('[data-payment-modal]')) return;
     const paymentPanel = event.target.closest('[data-payment-choice-panel]');
     if (paymentPanel) dgUpdatePaymentChoicePanel(paymentPanel);
   });
   panel.addEventListener('input', (event) => {
+    if (event.target.closest('[data-payment-modal]')) return;
     const legacyAmountInput = event.target.closest('[data-legacy-payment-amount]');
     if (legacyAmountInput) {
-      const modal = legacyAmountInput.closest('[data-payment-modal]');
       const amount = Number(legacyAmountInput.value || 0);
+      const modal = legacyAmountInput.closest('[data-payment-modal]');
       const amountLabel = modal?.querySelector('[data-modal-payment-amount]');
       if (amountLabel) amountLabel.textContent = amount > 0 ? dgMoney(amount) : 'Enter amount below';
       return;
@@ -1984,9 +2193,11 @@ function dgRenderBookingDetails() {
     if (!form) return;
     event.preventDefault();
     const modal = form.closest('[data-payment-modal]');
-    const selectedType = dgNormalizePaymentFormType(modal?.dataset.paymentType) || 'downpayment';
+    const paymentPanel = form.closest('[data-payment-choice-panel]');
+    if (paymentPanel) dgUpdateReceiptSubmissionModal(paymentPanel);
+    const selectedType = dgNormalizePaymentFormType(form.dataset.paymentType || modal?.dataset.paymentType) || 'downpayment';
     const legacyAmountInput = form.querySelector('[data-legacy-payment-amount]');
-    const amountPaid = legacyAmountInput ? Number(legacyAmountInput.value || 0) : Number(modal?.dataset.paymentAmount || 0);
+    const amountPaid = legacyAmountInput ? Number(legacyAmountInput.value || 0) : Number(form.dataset.paymentAmount || modal?.dataset.paymentAmount || 0);
     if (!dgValidatePaymentReceiptForm(form, booking, selectedType, amountPaid)) return;
 
     const submitBtn = form.querySelector('[type="submit"]');
@@ -2003,9 +2214,11 @@ function dgRenderBookingDetails() {
         notes: form.notes.value
       });
       if (result.ok) {
-        dgClosePaymentReceiptModal(modal);
+        if (modal) dgClosePaymentReceiptModal(modal);
         dgPaymentReceiptFeedback = 'Receipt submitted for admin verification.';
         dgRenderBookingDetails();
+      } else if (result.message) {
+        dgSetFieldError(form, 'amountPaid', result.message);
       }
     } finally {
       if (window.DGLoading) { DGLoading.hide(); DGLoading.enableButton(submitBtn); }
@@ -2027,12 +2240,26 @@ function dgRenderBookingDetails() {
       });
     }
   }
+  if (params.get('scroll') === 'production-updates') {
+    const productionSection = document.getElementById('booking-step-production');
+    const replyCard = panel.querySelector('[data-update-request-reply]');
+    window.requestAnimationFrame(() => {
+      const target = params.get('highlight') === 'update-reply' && replyCard ? replyCard : productionSection;
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        target.classList.add('update-request-focus');
+        window.setTimeout(() => target.classList.remove('update-request-focus'), 2600);
+      }
+    });
+  }
 
   panel.addEventListener('click', (event) => {
     const productionUpdateButton = event.target.closest('[data-request-production-update]');
     if (productionUpdateButton) {
       productionUpdateButton.disabled = true;
-      if (dgRequestProductionUpdate(booking)) {
+      const followUpCard = productionUpdateButton.closest('.production-follow-up-card');
+      const note = followUpCard?.querySelector('[data-production-update-message]')?.value || '';
+      if (dgRequestProductionUpdate(booking, note)) {
         dgRenderBookingDetails();
       } else {
         productionUpdateButton.disabled = false;
@@ -2393,7 +2620,7 @@ function dgPaymentAvailabilityType(type) {
 function dgPaymentLabel(type) {
   if (type === 'balance') return 'Balance Payment';
   if (type === 'full') return 'Full Payment';
-  if (type === 'custom') return 'Custom Payment';
+  if (type === 'custom') return 'Custom Amount';
   return 'Down Payment';
 }
 
@@ -2439,6 +2666,20 @@ async function dgSubmitClientPaymentReceipt(currentUser, values) {
     paymentRecordType = 'Down Payment';
   }
 
+  if (booking.invoice) {
+    const downStatus = booking.invoice.downPaymentStatus;
+    const balanceStatus = booking.invoice.balanceStatus;
+    if (effectiveSelectedType !== 'balance' && downStatus === 'Verified') {
+      return { ok: false, message: 'Down payment is already verified. Please submit the remaining balance instead.' };
+    }
+    if (effectiveSelectedType === 'balance' && downStatus !== 'Verified') {
+      return { ok: false, message: 'Balance payment is available after the down payment is verified.' };
+    }
+    if (effectiveSelectedType === 'balance' && balanceStatus === 'Pending Verification') {
+      return { ok: false, message: 'Balance payment receipt submitted for admin verification.' };
+    }
+  }
+
   const file = values.file;
   const extension = file ? file.name.split('.').pop().toLowerCase() : '';
   const imageTypes = ['jpg', 'jpeg', 'png'];
@@ -2463,6 +2704,19 @@ async function dgSubmitClientPaymentReceipt(currentUser, values) {
   const totalAmount = Number(booking.invoice?.totalAmount || 0);
   const minimumAmount = Number(booking.invoice?.downPaymentAmount || totalAmount * 0.5 || 0);
   const remainingAfterPayment = dgPaymentRemainingAfter(booking, effectiveSelectedType, amountPaid);
+  const duplicatePaymentType = effectiveSelectedType === 'full' ? 'Full Payment' : paymentRecordType;
+  const duplicatePayment = file && payments.some((payment) => (
+    payment.bookingId === booking.id &&
+    ['Pending Verification', 'Verified'].includes(payment.status) &&
+    String(payment.paymentType || '').trim() === duplicatePaymentType &&
+    Number(payment.amountPaid || 0) === Number(amountPaid || 0) &&
+    String(payment.referenceNumber || '').trim().toLowerCase() === String(values.referenceNumber || '').trim().toLowerCase() &&
+    String(payment.receiptFileName || '').trim().toLowerCase() === String(file.name || '').trim().toLowerCase() &&
+    Number(payment.receiptFileSize || 0) === Number(file.size || 0)
+  ));
+  if (duplicatePayment) {
+    return { ok: false, message: 'This receipt appears to have already been submitted.' };
+  }
   const buildPayment = (paymentType, paymentAmount, extraNotes = '') => ({
     id: dgNextId('PAY', payments),
     bookingId: booking.id,

@@ -131,9 +131,17 @@
 
   function buildNotificationLink(notification) {
     if (notification.role === 'client' && notification.bookingId) {
+      const text = `${notification.type || ''} ${notification.title || ''} ${notification.message || ''}`.toLowerCase();
+      if (text.includes('replied to your update request') || text.includes('update request reply')) {
+        return `booking-details.html?id=${encodeURIComponent(notification.bookingId)}&scroll=production-updates&highlight=update-reply`;
+      }
       return `booking-details.html?id=${encodeURIComponent(notification.bookingId)}&scroll=current-step`;
     }
     if (notification.role === 'staff' && notification.bookingId) {
+      const text = `${notification.type || ''} ${notification.title || ''} ${notification.message || ''}`.toLowerCase();
+      if (text.includes('production update requested') || text.includes('requested a production update')) {
+        return `project-progress.html?id=${encodeURIComponent(notification.bookingId)}&scroll=current-step&highlight=update-request`;
+      }
       return `project-progress.html?id=${encodeURIComponent(notification.bookingId)}&scroll=current-step`;
     }
     if (notification.role === 'admin' && notification.bookingId) {
@@ -143,10 +151,13 @@
         scroll = 'payments';
       } else if (text.includes('meeting')) {
         scroll = 'meeting';
+      } else if (text.includes('production update requested') || text.includes('requested a production update')) {
+        scroll = 'production-updates';
       } else if (text.includes('booking request') || text.includes('new booking')) {
         scroll = 'actions';
       }
-      return `admin-booking-details.html?id=${encodeURIComponent(notification.bookingId)}&scroll=${encodeURIComponent(scroll)}`;
+      const highlight = scroll === 'production-updates' ? '&highlight=update-request' : '';
+      return `admin-booking-details.html?id=${encodeURIComponent(notification.bookingId)}&scroll=${encodeURIComponent(scroll)}${highlight}`;
     }
     if (notification.role === 'admin' && notification.inquiryId) {
       return `manage-inquiries.html?inquiry=${encodeURIComponent(notification.inquiryId)}`;

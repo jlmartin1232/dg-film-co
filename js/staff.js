@@ -231,11 +231,98 @@ function dgStaffFormatDateTime(value) {
   return new Date(value).toLocaleString('en-PH', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
+function dgStaffFormatTimeDisplay(timeValue) {
+  if (!timeValue) return 'Not set';
+  const parts = String(timeValue).split(':');
+  const hour = Number(parts[0]);
+  const minute = Number(parts[1] || 0);
+  if (Number.isNaN(hour) || hour < 0 || hour > 23 || Number.isNaN(minute)) return String(timeValue);
+  const suffix = hour >= 12 ? 'PM' : 'AM';
+  const hour12 = hour % 12 || 12;
+  return `${hour12}:${String(minute).padStart(2, '0')} ${suffix}`;
+}
+
 function dgStaffFormatFileSize(bytes) {
   const size = Number(bytes || 0);
   if (!size) return 'Not set';
   if (size >= 1024 * 1024) return `${(size / (1024 * 1024)).toFixed(2)} MB`;
   return `${(size / 1024).toFixed(2)} KB`;
+}
+
+function dgStaffLatestUpdateRequestNotification(bookingId) {
+  if (!window.DGNotifications) return null;
+  return DGNotifications.getCurrentUserNotifications()
+    .filter((notification) => (
+      notification.bookingId === bookingId &&
+      notification.type === 'production' &&
+      String(`${notification.title || ''} ${notification.message || ''}`).toLowerCase().includes('production update')
+    ))
+    .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))[0] || null;
+}
+
+function dgStaffUpdateRequestMessage(notification) {
+  const message = String(notification?.message || '');
+  const match = message.match(/Message:\s*([\s\S]*)$/i);
+  return match ? match[1].trim() : '';
+}
+
+function dgStaffUpdateRequestBanner(booking, params) {
+  if (params.get('highlight') !== 'update-request') return '';
+  const notification = dgStaffLatestUpdateRequestNotification(booking.id);
+  const clientMessage = dgStaffUpdateRequestMessage(notification);
+  return `
+    <div class="production-update-request-banner" data-update-request-banner>
+      <div class="update-request-compact-row">
+        <div>
+          <p class="eyebrow">Client update request</p>
+          <p class="update-request-message-line">Message: &ldquo;${clientMessage ? dgStaffEscape(clientMessage) : 'No additional message was provided.'}&rdquo;</p>
+        </div>
+        <button class="btn ghost small" type="button" data-open-update-reply>Reply to Client</button>
+      </div>
+      <form class="update-request-reply-form" data-update-reply-form hidden novalidate>
+        <label>Reply message
+          <textarea name="replyMessage" rows="3" placeholder="Example: Hi, we received your follow-up. Editing is currently in progress and we&rsquo;ll post another update soon."></textarea>
+          <span class="field-error" data-error-for="replyMessage"></span>
+        </label>
+        <div class="inline-actions">
+          <button class="btn ghost small" type="button" data-cancel-update-reply>Cancel</button>
+          <button class="btn primary small" type="submit">Send Reply</button>
+        </div>
+      </form>
+      <p class="table-helper">Respond with a quick reply here, or add an official production note below for project progress.</p>
+    </div>
+  `;
+}
+
+function dgStaffSendUpdateRequestReply(bookingId, currentUser, message) {
+  const cleanMessage = String(message || '').trim();
+  if (!cleanMessage) return { ok: false, message: 'Reply message is required.' };
+
+  const bookings = dgStaffBookings();
+  const booking = bookings.find((item) => item.id === bookingId);
+  if (!booking || !dgStaffCanAccessBooking(booking, currentUser)) {
+    return { ok: false, message: 'This project can no longer be updated.' };
+  }
+
+  const now = new Date().toISOString();
+  const actorName = currentUser.name || currentUser.fullName || currentUser.email || 'DG Film Co.';
+  booking.updateRequestReplies = Array.isArray(booking.updateRequestReplies) ? booking.updateRequestReplies : [];
+  booking.updateRequestReplies.push({
+    message: cleanMessage,
+    repliedBy: actorName,
+    role: currentUser.role || 'staff',
+    createdAt: now
+  });
+  booking.history = Array.isArray(booking.history) ? booking.history : [];
+  booking.history.push({
+    date: now,
+    action: 'Replied to client update request',
+    by: `${actorName} (${currentUser.role || 'staff'})`
+  });
+
+  dgStaffSaveBookings(bookings);
+  dgStaffNotifyClient(booking, 'Update request reply', `DG Film Co. replied to your update request for ${booking.id}.`, 'production');
+  return { ok: true };
 }
 
 function dgStaffValidUrl(value) {
@@ -481,7 +568,7 @@ function dgStaffRenderAssignedProjects() {
         <td>${dgStaffEscape(booking.serviceType)}</td>
         <td>${dgStaffEscape(booking.packageName)}</td>
         <td>${dgStaffFormatDate(booking.eventDate)}</td>
-        <td>${dgStaffEscape(booking.eventTime)}</td>
+        <td>${dgStaffEscape(dgStaffFormatTimeDisplay(booking.eventTime))}</td>
         <td>${dgStaffEscape(booking.location)}</td>
         <td>${dgStaffBadge(booking.status)}<p class="table-helper">${dgStaffEscape(dgStaffProductionMeaning(booking.status))}</p></td>
         <td>${dgStaffEscape(dgStaffName(booking))}</td>
@@ -589,7 +676,7 @@ function dgStaffRenderProgress() {
         <div><dt>Client Name</dt><dd>${dgStaffEscape(booking.clientName)}</dd></div>
         <div><dt>Package</dt><dd>${dgStaffEscape(booking.packageName)}</dd></div>
         <div><dt>Event Date</dt><dd>${dgStaffFormatDate(booking.eventDate)}</dd></div>
-        <div><dt>Event Time</dt><dd>${dgStaffEscape(booking.eventTime)}</dd></div>
+        <div><dt>Event Time</dt><dd>${dgStaffEscape(dgStaffFormatTimeDisplay(booking.eventTime))}</dd></div>
         <div><dt>Location</dt><dd>${dgStaffEscape(booking.location)}</dd></div>
         <div><dt>Contact Number</dt><dd>${dgStaffEscape(booking.contactNumber)}</dd></div>
         <div><dt>Assigned Staff</dt><dd>${dgStaffEscape(dgStaffName(booking))}</dd></div>
@@ -615,6 +702,7 @@ function dgStaffRenderProgress() {
     </section>
     <section class="detail-block staff-status-update-section"${updateStepAttribute}>
       <h2>${booking.status === 'Ready for Delivery' ? 'Final Delivery' : 'Status Update'}</h2>
+      ${dgStaffUpdateRequestBanner(booking, params)}
       ${statusUpdateSection}
       <div class="hero-actions">
         <a class="btn ghost" href="assigned-projects.html">Back to Assigned Projects</a>
@@ -623,6 +711,52 @@ function dgStaffRenderProgress() {
   `;
 
   dgStaffFocusCurrentStep(booking, params);
+  if (params.get('highlight') === 'update-request') {
+    window.requestAnimationFrame(() => {
+      const banner = panel.querySelector('[data-update-request-banner]');
+      const noteField = panel.querySelector('#progressForm textarea[name="note"]');
+      const target = banner || noteField;
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        target.classList.add('update-request-focus');
+        window.setTimeout(() => target.classList.remove('update-request-focus'), 2600);
+      }
+      if (noteField) noteField.focus({ preventScroll: true });
+    });
+  }
+
+  panel.querySelector('[data-open-update-reply]')?.addEventListener('click', (event) => {
+    const banner = event.currentTarget.closest('[data-update-request-banner]');
+    const replyForm = banner?.querySelector('[data-update-reply-form]');
+    if (replyForm) {
+      replyForm.hidden = false;
+      replyForm.querySelector('textarea')?.focus();
+    }
+  });
+
+  panel.querySelector('[data-cancel-update-reply]')?.addEventListener('click', (event) => {
+    const replyForm = event.currentTarget.closest('[data-update-reply-form]');
+    if (replyForm) {
+      replyForm.reset();
+      replyForm.hidden = true;
+      const error = replyForm.querySelector('[data-error-for="replyMessage"]');
+      if (error) error.textContent = '';
+    }
+  });
+
+  panel.querySelector('[data-update-reply-form]')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const replyForm = event.currentTarget;
+    const error = replyForm.querySelector('[data-error-for="replyMessage"]');
+    if (error) error.textContent = '';
+    const result = dgStaffSendUpdateRequestReply(booking.id, currentUser, replyForm.replyMessage.value);
+    if (!result.ok) {
+      if (error) error.textContent = result.message;
+      return;
+    }
+    dgStaffShowMessage('Reply sent to client.');
+    dgStaffRenderProgress();
+  });
 
   const form = document.getElementById('progressForm');
   if (!form) return;

@@ -389,6 +389,17 @@ function dgAdminDownPaymentVerified(booking) {
   return booking.invoice ? booking.invoice.downPaymentStatus === 'Verified' : booking.paymentStatus === 'Verified';
 }
 
+function dgAdminPaymentReadyForStaffAssignment(booking) {
+  dgAdminNormalizeBooking(booking);
+  return Boolean(
+    booking &&
+    booking.status === 'Confirmed' &&
+    booking.invoice &&
+    dgAdminDownPaymentVerified(booking) &&
+    !booking.assignedStaffId
+  );
+}
+
 function dgAdminNextInvoiceId(bookings) {
   const numbers = bookings
     .map((booking) => Number(String(booking.invoice?.invoiceId || '').replace('INV-', '')))
@@ -478,6 +489,9 @@ function dgAdminUpdatePayment(paymentId, status) {
       } else {
         const invoiceKey = isBalance ? 'balanceStatus' : 'downPaymentStatus';
         booking.invoice[invoiceKey] = status;
+        if (isBalance && status === 'Verified') {
+          booking.invoice.balanceAmount = 0;
+        }
       }
       if (booking.invoice.downPaymentStatus === 'Verified' && booking.invoice.balanceStatus === 'Verified') {
         booking.invoice.invoiceStatus = 'Paid';
@@ -942,7 +956,7 @@ function dgAdminBookingActions(booking) {
   } else if (booking.status === 'Meeting Scheduled') {
     primaryAction = link('View Meeting', meetingHref, true);
     normalActions.push(link('Reschedule Meeting', meetingHref));
-    normalActions.push(link('Confirm Booking', `${detailsHref}#admin-actions`));
+    normalActions.push(link('Confirm Booking', meetingHref));
     addCancel();
   } else if (booking.status === 'Confirmed' || ['Awaiting Payment', 'Awaiting Down Payment'].includes(booking.paymentStatus)) {
     primaryAction = link('View Invoice', invoiceHref, true);
@@ -1881,59 +1895,63 @@ function dgAdminMeetingForm(booking) {
   `;
 }
 
-function dgAdminDetailActions(booking, payments) {
-  dgAdminNormalizeBooking(booking);
-  const canAssign = booking.status === 'Confirmed' && booking.invoice && dgAdminDownPaymentVerified(booking);
-  const canMarkScheduled = canAssign && Boolean(booking.assignedStaffId);
-  const productionStatuses = ['Scheduled', 'On Shoot', 'Editing', 'Ready for Delivery', 'Completed'];
-  const suggestedAmount = booking.finalAgreedAmount || dgAdminPackageAmount(booking);
-  const pendingPayments = (Array.isArray(payments) ? payments : (payments ? [payments] : [])).filter((p) => p && p.status === 'Pending Verification');
+function dgAdminContextActionCard(title, content, extraClass = '', id = '') {
+  if (!String(content || '').trim()) return '';
+  return `
+    <div class="context-action-card ${extraClass}"${id ? ` id="${dgAdminEscape(id)}"` : ''}>
+      <p class="eyebrow">${dgAdminEscape(title)}</p>
+      ${content}
+    </div>
+  `;
+}
 
-  const downPaymentBlocked = booking.status === 'Confirmed' && booking.invoice && !dgAdminDownPaymentVerified(booking) && !['Awaiting Down Payment', 'Awaiting Payment'].includes(booking.paymentStatus);
-  const confirmationGateMessage = booking.status === 'Meeting Scheduled' ? dgAdminConfirmationGateMessage(booking) : '';
+function dgAdminBookingRequestAction(booking) {
+  dgAdminNormalizeBooking(booking);
+  if (booking.status !== 'Pending Review') return '';
+  return dgAdminContextActionCard('Admin Next Action', `
+    <p class="table-helper">Review the request, then approve it for consultation or reject it.</p>
+    <div class="admin-action-buttons">
+      <button class="btn primary" type="button" data-action="approveMeeting" data-id="${dgAdminEscape(booking.id)}">Approve for Meeting</button>
+      <button class="btn danger" type="button" data-action="reject" data-id="${dgAdminEscape(booking.id)}">Reject Booking</button>
+      <a class="btn ghost" href="manage-bookings.html">Back to Manage Bookings</a>
+    </div>
+  `, 'booking-context-action', 'booking-next-action');
+}
+
+function dgAdminMeetingContextAction(booking) {
+  dgAdminNormalizeBooking(booking);
+  const suggestedAmount = booking.finalAgreedAmount || dgAdminPackageAmount(booking);
+  if (booking.status === 'Approved for Meeting') {
+    return dgAdminContextActionCard('Meeting Action', `
+      <p class="table-helper">Schedule the consultation using the client preference as reference.</p>
+      ${dgAdminMeetingForm(booking)}
+    `, 'meeting-context-action');
+  }
+  if (booking.status !== 'Meeting Scheduled') return '';
+  const confirmationGateMessage = dgAdminConfirmationGateMessage(booking);
   const confirmDisabledReason = confirmationGateMessage ||
     dgAdminConfirmationInputMessage(booking.postMeetingNotes || '', suggestedAmount || '');
   const confirmDisabledAttributes = confirmDisabledReason
     ? ` disabled aria-disabled="true" title="${dgAdminEscape(confirmDisabledReason)}"`
     : ' aria-disabled="false" title="Confirm booking and generate invoice"';
-
-  return `
-    ${booking.status === 'Pending Review' ? `<button class="btn primary" type="button" data-action="approveMeeting" data-id="${dgAdminEscape(booking.id)}">Approve for Meeting</button>` : ''}
-    ${booking.status === 'Pending Review' ? `<button class="btn danger" type="button" data-action="reject" data-id="${dgAdminEscape(booking.id)}">Reject Booking</button>` : ''}
-    ${booking.status === 'Meeting Scheduled' ? `
-      <div class="post-meeting-confirm-card">
-        <p class="table-helper">Confirm the booking only after the consultation meeting is completed and the final details are agreed.</p>
-        ${confirmationGateMessage ? `<div class="meeting-confirmation-warning">${dgAdminEscape(confirmationGateMessage)}</div>` : ''}
-        <label>Post-Meeting Notes / Meeting Summary
-          <textarea name="postMeetingNotes" data-post-meeting-notes="${dgAdminEscape(booking.id)}" rows="5" placeholder="Summarize what was discussed during the consultation: final package, event timeline, client requirements, payment agreement, delivery expectations, and special requests.">${dgAdminEscape(booking.postMeetingNotes || '')}</textarea>
-          <span class="field-error" data-error-for="postMeetingNotes"></span>
-        </label>
-        <label>Final Agreed Package Amount
-          <input type="number" min="1" step="0.01" data-final-agreed-amount="${dgAdminEscape(booking.id)}" value="${dgAdminEscape(suggestedAmount || '')}" placeholder="Enter final agreed amount" />
-          <span class="field-error" data-error-for="finalAgreedAmount"></span>
-        </label>
-        <div class="admin-action-buttons">
-          <button class="btn primary" type="button" data-action="confirm" data-id="${dgAdminEscape(booking.id)}"${confirmDisabledAttributes}>Confirm Booking</button>
-          <a class="btn ghost" href="manage-bookings.html">Back to Manage Bookings</a>
-        </div>
+  return dgAdminContextActionCard('Meeting Action', `
+    <div class="post-meeting-confirm-card">
+      <p class="table-helper">Confirm the booking only after the consultation meeting is completed and the final details are agreed.</p>
+      ${confirmationGateMessage ? `<div class="meeting-confirmation-warning">${dgAdminEscape(confirmationGateMessage)}</div>` : ''}
+      <label>Post-Meeting Notes / Meeting Summary
+        <textarea name="postMeetingNotes" data-post-meeting-notes="${dgAdminEscape(booking.id)}" rows="5" placeholder="Summarize what was discussed during the consultation: final package, event timeline, client requirements, payment agreement, delivery expectations, and special requests.">${dgAdminEscape(booking.postMeetingNotes || '')}</textarea>
+        <span class="field-error" data-error-for="postMeetingNotes"></span>
+      </label>
+      <label>Final Agreed Package Amount
+        <input type="number" min="1" step="0.01" data-final-agreed-amount="${dgAdminEscape(booking.id)}" value="${dgAdminEscape(suggestedAmount || '')}" placeholder="Enter final agreed amount" />
+        <span class="field-error" data-error-for="finalAgreedAmount"></span>
+      </label>
+      <div class="admin-action-buttons">
+        <button class="btn primary" type="button" data-action="confirm" data-id="${dgAdminEscape(booking.id)}"${confirmDisabledAttributes}>Confirm Booking</button>
+        <a class="btn ghost" href="manage-bookings.html">Back to Manage Bookings</a>
       </div>
-    ` : ''}
-    ${booking.status === 'Confirmed' && !booking.invoice ? `
-      <div class="post-meeting-confirm-card">
-        <p class="table-helper">This confirmed booking is missing an invoice. Generate one now by entering the final agreed package amount.</p>
-        <label>Final Agreed Package Amount
-          <input type="number" min="1" step="0.01" data-generate-invoice-amount="${dgAdminEscape(booking.id)}" value="${dgAdminEscape(suggestedAmount || '')}" placeholder="Enter final agreed amount" />
-          <span class="field-error" data-error-for="generateInvoiceAmount"></span>
-        </label>
-        <button class="btn primary" type="button" data-action="generateInvoice" data-id="${dgAdminEscape(booking.id)}">Generate Invoice</button>
-      </div>
-    ` : ''}
-    ${booking.status === 'Confirmed' && booking.invoice && ['Awaiting Payment', 'Awaiting Down Payment'].includes(booking.paymentStatus) ? '<div class="empty-state">Waiting for client down payment.</div>' : ''}
-    ${downPaymentBlocked ? '<div class="empty-state">Down payment must be verified before staff assignment. Verify the payment in the Payment Information section below.</div>' : ''}
-    ${canAssign ? `<button class="btn ghost" type="button" data-action="assign" data-id="${dgAdminEscape(booking.id)}">Assign Staff</button>` : ''}
-    ${canMarkScheduled ? `<button class="btn primary" type="button" data-action="schedule" data-id="${dgAdminEscape(booking.id)}">Mark as Scheduled</button>` : ''}
-    ${productionStatuses.includes(booking.status) ? `<a class="btn primary" href="project-progress.html?id=${dgAdminEscape(booking.id)}">Update Production Progress</a>` : ''}
-  `;
+    </div>
+  `, 'meeting-context-action');
 }
 
 function dgAdminPaymentRows(payments) {
@@ -1969,6 +1987,57 @@ function dgAdminPaymentRows(payments) {
   </div>`;
 }
 
+function dgAdminPaymentNextStepAction(booking) {
+  dgAdminNormalizeBooking(booking);
+  if (!dgAdminPaymentReadyForStaffAssignment(booking)) return '';
+  return `
+    <div class="payment-next-step-card">
+      <div>
+        <p class="eyebrow">Next Step</p>
+        <h3>Assign Staff</h3>
+        <p>Down payment verified. Assign this booking to a staff member so production can proceed.</p>
+      </div>
+      <div class="payment-next-step-controls">
+        ${dgAdminStaffSelect(booking)}
+        <button class="btn primary" type="button" data-action="assign" data-id="${dgAdminEscape(booking.id)}">Assign Staff</button>
+      </div>
+    </div>
+  `;
+}
+
+function dgAdminPaymentContextAction(booking, payments) {
+  dgAdminNormalizeBooking(booking);
+  const suggestedAmount = booking.finalAgreedAmount || dgAdminPackageAmount(booking);
+  const downPaymentBlocked = booking.status === 'Confirmed' && booking.invoice && !dgAdminDownPaymentVerified(booking) && !['Awaiting Down Payment', 'Awaiting Payment'].includes(booking.paymentStatus);
+  const hasPendingPayment = (Array.isArray(payments) ? payments : []).some((payment) => payment.status === 'Pending Verification');
+  if (booking.status === 'Confirmed' && !booking.invoice) {
+    return dgAdminContextActionCard('Payment Next Action', `
+      <p class="table-helper">This confirmed booking is missing an invoice. Generate one now by entering the final agreed package amount.</p>
+      <label>Final Agreed Package Amount
+        <input type="number" min="1" step="0.01" data-generate-invoice-amount="${dgAdminEscape(booking.id)}" value="${dgAdminEscape(suggestedAmount || '')}" placeholder="Enter final agreed amount" />
+        <span class="field-error" data-error-for="generateInvoiceAmount"></span>
+      </label>
+      <button class="btn primary" type="button" data-action="generateInvoice" data-id="${dgAdminEscape(booking.id)}">Generate Invoice</button>
+    `, 'payment-context-action');
+  }
+  if (hasPendingPayment) {
+    return dgAdminContextActionCard('Payment Next Action', `
+      <p class="table-helper">Review the submitted receipt using the actions in the Related Payments table.</p>
+    `, 'payment-context-action compact-context-action');
+  }
+  if (booking.status === 'Confirmed' && booking.invoice && ['Awaiting Payment', 'Awaiting Down Payment'].includes(booking.paymentStatus)) {
+    return dgAdminContextActionCard('Payment Next Action', `
+      <p class="table-helper">Waiting for client down payment.</p>
+    `, 'payment-context-action compact-context-action');
+  }
+  if (downPaymentBlocked) {
+    return dgAdminContextActionCard('Payment Next Action', `
+      <p class="table-helper">Down payment must be verified before staff assignment. Verify the payment in the Related Payments table.</p>
+    `, 'payment-context-action compact-context-action');
+  }
+  return dgAdminPaymentNextStepAction(booking);
+}
+
 function dgAdminInvoiceDetails(booking, payments) {
   dgAdminNormalizeBooking(booking);
   const invoice = booking.invoice;
@@ -1976,6 +2045,7 @@ function dgAdminInvoiceDetails(booking, payments) {
     return `
       <div class="empty-state">No invoice generated yet for this booking.</div>
       ${dgAdminPaymentRows(payments)}
+      ${dgAdminPaymentContextAction(booking, payments)}
     `;
   }
   const bothVerified = invoice.downPaymentStatus === 'Verified' && invoice.balanceStatus === 'Verified';
@@ -2015,7 +2085,110 @@ function dgAdminInvoiceDetails(booking, payments) {
     </article>
     <h3 class="section-subtitle">Related Payments</h3>
     ${dgAdminPaymentRows(payments)}
+    ${dgAdminPaymentContextAction(booking, payments)}
   `;
+}
+
+function dgAdminProductionContextAction(booking) {
+  dgAdminNormalizeBooking(booking);
+  const canMarkScheduled = booking.status === 'Confirmed' && booking.invoice && dgAdminDownPaymentVerified(booking) && Boolean(booking.assignedStaffId);
+  const productionStatuses = ['Scheduled', 'On Shoot', 'Editing', 'Ready for Delivery', 'Completed'];
+  if (canMarkScheduled) {
+    return dgAdminContextActionCard('Production Action', `
+      <p class="table-helper">Assigned Staff: <strong>${dgAdminEscape(dgAdminStaffName(booking))}</strong></p>
+      <button class="btn primary" type="button" data-action="schedule" data-id="${dgAdminEscape(booking.id)}">Mark as Scheduled</button>
+    `, 'production-context-action');
+  }
+  if (productionStatuses.includes(booking.status)) {
+    return dgAdminContextActionCard('Production Action', `
+      <p class="table-helper">Assigned Staff: <strong>${dgAdminEscape(dgAdminStaffName(booking))}</strong></p>
+      <a class="btn primary" href="project-progress.html?id=${dgAdminEscape(booking.id)}">Update Production Progress</a>
+    `, 'production-context-action');
+  }
+  if (booking.status === 'Confirmed' && booking.assignedStaffId) {
+    return dgAdminContextActionCard('Production Action', `
+      <p class="table-helper">Assigned Staff: <strong>${dgAdminEscape(dgAdminStaffName(booking))}</strong></p>
+    `, 'production-context-action compact-context-action');
+  }
+  return '';
+}
+
+function dgAdminLatestUpdateRequestNotification(bookingId) {
+  if (!window.DGNotifications) return null;
+  return DGNotifications.getCurrentUserNotifications()
+    .filter((notification) => (
+      notification.bookingId === bookingId &&
+      notification.type === 'production' &&
+      String(`${notification.title || ''} ${notification.message || ''}`).toLowerCase().includes('production update')
+    ))
+    .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))[0] || null;
+}
+
+function dgAdminUpdateRequestMessage(notification) {
+  const message = String(notification?.message || '');
+  const match = message.match(/Message:\s*([\s\S]*)$/i);
+  return match ? match[1].trim() : '';
+}
+
+function dgAdminUpdateRequestBanner(booking, params) {
+  if (params.get('highlight') !== 'update-request') return '';
+  const notification = dgAdminLatestUpdateRequestNotification(booking.id);
+  const clientMessage = dgAdminUpdateRequestMessage(notification);
+  const guidance = booking.assignedStaffId
+    ? 'Assigned staff can also respond with a production update.'
+    : 'Assign staff so the project team can respond to the client update request.';
+  return `
+    <div class="production-update-request-banner" data-update-request-banner>
+      <div class="update-request-compact-row">
+        <div>
+          <p class="eyebrow">Client update request</p>
+          <p class="update-request-message-line">Message: &ldquo;${clientMessage ? dgAdminEscape(clientMessage) : 'No additional message was provided.'}&rdquo;</p>
+        </div>
+        <button class="btn ghost small" type="button" data-open-update-reply>Reply to Client</button>
+      </div>
+      <form class="update-request-reply-form" data-update-reply-form hidden novalidate>
+        <label>Reply message
+          <textarea name="replyMessage" rows="3" placeholder="Example: Hi, we received your follow-up. Editing is currently in progress and we&rsquo;ll post another update soon."></textarea>
+          <span class="field-error" data-error-for="replyMessage"></span>
+        </label>
+        <div class="inline-actions">
+          <button class="btn ghost small" type="button" data-cancel-update-reply>Cancel</button>
+          <button class="btn primary small" type="submit">Send Reply</button>
+        </div>
+      </form>
+      <p class="table-helper">${dgAdminEscape(guidance)}</p>
+    </div>
+  `;
+}
+
+function dgAdminSendUpdateRequestReply(bookingId, message) {
+  const cleanMessage = String(message || '').trim();
+  if (!cleanMessage) return { ok: false, message: 'Reply message is required.' };
+
+  const currentUser = dgAdminUser();
+  const bookings = dgAdminGetBookings();
+  const booking = bookings.find((item) => item.id === bookingId);
+  if (!booking || !currentUser) return { ok: false, message: 'Booking was not found.' };
+
+  const now = new Date().toISOString();
+  const actorName = currentUser.name || currentUser.fullName || currentUser.email || 'Admin';
+  booking.updateRequestReplies = Array.isArray(booking.updateRequestReplies) ? booking.updateRequestReplies : [];
+  booking.updateRequestReplies.push({
+    message: cleanMessage,
+    repliedBy: actorName,
+    role: currentUser.role || 'admin',
+    createdAt: now
+  });
+  booking.history = Array.isArray(booking.history) ? booking.history : [];
+  booking.history.push({
+    date: now,
+    action: 'Replied to client update request',
+    by: `${actorName} (${currentUser.role || 'admin'})`
+  });
+
+  dgAdminSaveBookings(bookings);
+  dgAdminNotifyClient(booking, 'Update request reply', `DG Film Co. replied to your update request for ${booking.id}.`, 'production');
+  return { ok: true };
 }
 
 function dgAdminDeliveryFeedback(booking) {
@@ -2054,6 +2227,26 @@ function dgAdminDeliveryFeedback(booking) {
       ` : ''}
     </div>
   `;
+}
+
+function dgAdminDeliveryContextAction(booking) {
+  dgAdminNormalizeBooking(booking);
+  if (booking.status === 'Ready for Delivery' && booking.invoice && booking.invoice.balanceStatus !== 'Verified') {
+    return dgAdminContextActionCard('Delivery Action', `
+      <p class="table-helper">Final output is ready, but the remaining balance must be verified before delivery can be released.</p>
+    `, 'delivery-context-action compact-context-action');
+  }
+  if (booking.status === 'Ready for Delivery') {
+    return dgAdminContextActionCard('Delivery Action', `
+      <p class="table-helper">Balance is verified. Staff can release the final output and mark the project as completed from the production workflow.</p>
+    `, 'delivery-context-action compact-context-action');
+  }
+  if (booking.status === 'Completed') {
+    return dgAdminContextActionCard('Delivery Action', `
+      <p class="table-helper">Project completed. Review delivery output and client feedback here.</p>
+    `, 'delivery-context-action compact-context-action');
+  }
+  return '';
 }
 
 function dgAdminNextAction(booking, payment) {
@@ -2239,10 +2432,11 @@ function dgAdminRenderDetails() {
       <div class="wide"><dt>Event Details</dt><dd>${dgAdminEscape(booking.details)}</dd></div>
       <div class="wide"><dt>Additional Notes</dt><dd>${dgAdminEscape(booking.notes || 'None')}</dd></div>
     </dl>
+    ${dgAdminBookingRequestAction(booking)}
     <section class="detail-block" id="meeting">
       <h2>Meeting</h2>
       ${dgAdminMeetingPreference(booking)}
-      ${booking.status === 'Approved for Meeting' ? dgAdminMeetingForm(booking) : dgAdminMeetingDetails(booking)}
+      ${booking.status === 'Approved for Meeting' ? '' : dgAdminMeetingDetails(booking)}
       ${dgAdminClientMeetingConfirmation(booking)}
       ${dgAdminRescheduleRequestCard(booking)}
       ${booking.postMeetingNotes ? `
@@ -2254,19 +2448,7 @@ function dgAdminRenderDetails() {
           </dl>
         </div>
       ` : ''}
-    </section>
-    <section class="detail-block admin-action-card" id="admin-actions">
-      <h2>Admin Actions</h2>
-      <div class="empty-state">${dgAdminEscape(dgAdminNextAction(booking, payment))}</div>
-      ${booking.status === 'Confirmed' && booking.invoice && dgAdminDownPaymentVerified(booking) ? `<div class="staff-action-row">
-        ${dgAdminStaffSelect(booking)}
-      </div>` : ''}
-      ${booking.status === 'Meeting Scheduled' ? dgAdminDetailActions(booking, payments) : `
-      <div class="admin-action-buttons">
-        ${dgAdminDetailActions(booking, payments)}
-        <a class="btn ghost" href="manage-bookings.html">Back to Manage Bookings</a>
-      </div>
-      `}
+      ${dgAdminMeetingContextAction(booking)}
     </section>
     <section class="detail-block" id="payment-information">
       <h2>Payment Information</h2>
@@ -2274,11 +2456,14 @@ function dgAdminRenderDetails() {
     </section>
     <section class="detail-block" id="production-updates">
       <h2>Production Updates</h2>
+      ${dgAdminUpdateRequestBanner(booking, params)}
       ${dgAdminProductionTimeline(booking)}
+      ${dgAdminProductionContextAction(booking)}
     </section>
     <section class="detail-block" id="delivery-output">
       <h2>Delivery Output and Client Feedback</h2>
       ${dgAdminDeliveryFeedback(booking)}
+      ${dgAdminDeliveryContextAction(booking)}
     </section>
     <section class="detail-block">
       <h2>History Log</h2>
@@ -2307,7 +2492,8 @@ function dgAdminRenderDetails() {
       payments: 'payment-information',
       payment: 'payment-information',
       meeting: 'meeting',
-      actions: 'admin-actions'
+      'production-updates': 'production-updates',
+      actions: booking.status === 'Pending Review' ? 'booking-next-action' : booking.status === 'Meeting Scheduled' || booking.status === 'Approved for Meeting' ? 'meeting' : 'payment-information'
     };
     const targetId = targetMap[scrollTarget] || (window.location.hash ? window.location.hash.slice(1) : '');
     const section = targetId ? document.getElementById(targetId) : null;
@@ -2316,9 +2502,38 @@ function dgAdminRenderDetails() {
       section.classList.add('admin-section-focus');
       window.setTimeout(() => section.classList.remove('admin-section-focus'), 1800);
     }
+    if (params.get('highlight') === 'update-request') {
+      const banner = panel.querySelector('[data-update-request-banner]');
+      if (banner) {
+        banner.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        banner.classList.add('update-request-focus');
+        window.setTimeout(() => banner.classList.remove('update-request-focus'), 2600);
+      }
+    }
   });
 
   panel.onclick = (event) => {
+    const openUpdateReply = event.target.closest('[data-open-update-reply]');
+    if (openUpdateReply) {
+      const banner = openUpdateReply.closest('[data-update-request-banner]');
+      const replyForm = banner?.querySelector('[data-update-reply-form]');
+      if (replyForm) {
+        replyForm.hidden = false;
+        replyForm.querySelector('textarea')?.focus();
+      }
+      return;
+    }
+    const cancelUpdateReply = event.target.closest('[data-cancel-update-reply]');
+    if (cancelUpdateReply) {
+      const replyForm = cancelUpdateReply.closest('[data-update-reply-form]');
+      if (replyForm) {
+        replyForm.reset();
+        replyForm.hidden = true;
+        const error = replyForm.querySelector('[data-error-for="replyMessage"]');
+        if (error) error.textContent = '';
+      }
+      return;
+    }
     const moreButton = event.target.closest('[data-payment-more-menu]');
     if (moreButton) {
       event.preventDefault();
@@ -2411,6 +2626,20 @@ function dgAdminRenderDetails() {
     }
     if (changed) dgAdminRenderDetails();
   };
+
+  panel.querySelector('[data-update-reply-form]')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const replyForm = event.currentTarget;
+    const error = replyForm.querySelector('[data-error-for="replyMessage"]');
+    if (error) error.textContent = '';
+    const result = dgAdminSendUpdateRequestReply(booking.id, replyForm.replyMessage.value);
+    if (!result.ok) {
+      if (error) error.textContent = result.message;
+      return;
+    }
+    dgAdminShowMessage('Reply sent to client.');
+    dgAdminRenderDetails();
+  });
 
   const meetingForm = document.getElementById('meetingForm');
   if (meetingForm) {
