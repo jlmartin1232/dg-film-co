@@ -16,6 +16,7 @@
       <a href="services.html" class="active">Services</a>
       <a href="pricing.html">Pricing</a>
       <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
       <a href="login.html">Login</a>
       <a href="register.html">Register</a>
       <a href="contact.html" class="nav-cta">Book a Shoot</a>
@@ -46,25 +47,25 @@
             <div class="service-catalog-meta"><span>01</span><small>Event</small></div>
             <h3>Wedding Photo/Video</h3>
             <p>Cinematic wedding coverage from preparation and ceremony to portraits, reception, and final highlights.</p>
-            <button class="btn ghost services-inquire" type="button" data-open-inquiry-modal data-service="Wedding Photo/Video">Inquire</button>
+            <a class="btn ghost services-inquire" href="contact.html?service=Wedding%20Photo%2FVideo">Inquire</a>
           </article>
           <article class="service-catalog-card">
             <div class="service-catalog-meta"><span>02</span><small>Event</small></div>
             <h3>Debut / Birthday Coverage</h3>
             <p>Elegant films and photographs for debuts, birthdays, and once-in-a-lifetime family celebrations.</p>
-            <button class="btn ghost services-inquire" type="button" data-open-inquiry-modal data-service="Debut / Birthday Coverage">Inquire</button>
+            <a class="btn ghost services-inquire" href="contact.html?service=Debut%20%2F%20Birthday%20Coverage">Inquire</a>
           </article>
           <article class="service-catalog-card">
             <div class="service-catalog-meta"><span>06</span><small>Event</small></div>
             <h3>Graduation / Event Coverage</h3>
             <p>Formal event coverage for graduations, milestones, and recognition programs.</p>
-            <button class="btn ghost services-inquire" type="button" data-open-inquiry-modal data-service="Graduation / Event Coverage">Inquire</button>
+            <a class="btn ghost services-inquire" href="contact.html?service=Graduation%20%2F%20Event%20Coverage">Inquire</a>
           </article>
           <article class="service-catalog-card">
             <div class="service-catalog-meta"><span>07</span><small>Event</small></div>
             <h3>Pageant / Event Coverage</h3>
             <p>Stage highlights, portraits, candidate features, and polished coverage for pageant events.</p>
-            <button class="btn ghost services-inquire" type="button" data-open-inquiry-modal data-service="Pageant / Event Coverage">Inquire</button>
+            <a class="btn ghost services-inquire" href="contact.html?service=Pageant%20%2F%20Event%20Coverage">Inquire</a>
           </article>
         </div>
       </article>
@@ -80,19 +81,19 @@
             <div class="service-catalog-meta"><span>03</span><small>Commercial</small></div>
             <h3>Corporate / Commercial Video</h3>
             <p>Professional brand films, campaign videos, interviews, launches, and business event coverage.</p>
-            <button class="btn ghost services-inquire" type="button" data-open-inquiry-modal data-service="Corporate / Commercial Video">Inquire</button>
+            <a class="btn ghost services-inquire" href="contact.html?service=Corporate%20%2F%20Commercial%20Video">Inquire</a>
           </article>
           <article class="service-catalog-card">
             <div class="service-catalog-meta"><span>04</span><small>Commercial</small></div>
             <h3>Restaurant / Food Promo</h3>
             <p>Atmospheric food, venue, and lifestyle visuals for restaurants, cafes, and hospitality brands.</p>
-            <button class="btn ghost services-inquire" type="button" data-open-inquiry-modal data-service="Restaurant / Food Promo">Inquire</button>
+            <a class="btn ghost services-inquire" href="contact.html?service=Restaurant%20%2F%20Food%20Promo">Inquire</a>
           </article>
           <article class="service-catalog-card">
             <div class="service-catalog-meta"><span>09</span><small>Commercial</small></div>
             <h3>Product / Brand Event</h3>
             <p>Product reels, launch coverage, branded activations, and campaign-ready event visuals.</p>
-            <button class="btn ghost services-inquire" type="button" data-open-inquiry-modal data-service="Product / Brand Event">Inquire</button>
+            <a class="btn ghost services-inquire" href="contact.html?service=Product%20%2F%20Brand%20Event">Inquire</a>
           </article>
         </div>
       </article>
@@ -108,13 +109,13 @@
             <div class="service-catalog-meta"><span>05</span><small>Event</small></div>
             <h3>Nightlife / Club Events</h3>
             <p>High-energy coverage for club nights, venue events, DJ sets, and social media recaps.</p>
-            <button class="btn ghost services-inquire" type="button" data-open-inquiry-modal data-service="Nightlife / Club Events">Inquire</button>
+            <a class="btn ghost services-inquire" href="contact.html?service=Nightlife%20%2F%20Club%20Events">Inquire</a>
           </article>
           <article class="service-catalog-card">
             <div class="service-catalog-meta"><span>08</span><small>Creative</small></div>
             <h3>Creative Film / Documentary</h3>
             <p>Purpose-driven films, documentary pieces, campaign stories, and cinematic visual narratives.</p>
-            <button class="btn ghost services-inquire" type="button" data-open-inquiry-modal data-service="Creative Film / Documentary">Inquire</button>
+            <a class="btn ghost services-inquire" href="contact.html?service=Creative%20Film%20%2F%20Documentary">Inquire</a>
           </article>
         </div>
       </article>
@@ -139,29 +140,32 @@
         <button class="modal-close" type="button" data-close-inquiry-modal aria-label="Close inquiry form">Close</button>
       </header>
 
-      <form class="inquiry-form services-inquiry-form" id="inquiryForm" action="thank-you.html">
+      <form class="inquiry-form services-inquiry-form" id="inquiryForm" action="thank-you.html" novalidate>
         <input type="text" name="website" class="hidden-field" tabindex="-1" autocomplete="off" />
         <div class="services-step-indicator" data-inquiry-step-indicator>Step 1 of 2 &mdash; Project Basics</div>
         <div class="services-inquiry-success" data-inquiry-success hidden>
           <p class="eyebrow">Inquiry Sent</p>
           <h3>Thanks for reaching out.</h3>
-          <p>We received your inquiry. Our team will review your details and contact you soon.</p>
-          <button class="btn primary" type="button" data-close-inquiry-modal>Close</button>
+          <p>We received your inquiry. Please keep an eye on your email or mobile number so our team can contact you about the next steps.</p>
+          <div class="services-inquiry-success-actions">
+            <a class="btn ghost" href="index.html">Back to Home</a>
+            <button class="btn primary" type="button" data-open-inquiry-modal>Send another inquiry</button>
+          </div>
         </div>
         <div class="services-inquiry-body">
           <div class="services-step-panel is-active" data-inquiry-step-panel="1">
           <fieldset class="services-form-group contact-details">
             <legend>Contact Details</legend>
             <div class="services-inquiry-grid contact-grid">
-              <label>Full Name
+              <label><span class="field-label">Full Name <span class="required-mark" aria-hidden="true">*</span></span>
                 <input type="text" name="name" placeholder="Enter your full name" required />
                 <span class="field-error" data-error-for="name"></span>
               </label>
-              <label>Email Address
+              <label><span class="field-label">Email Address <span class="required-mark" aria-hidden="true">*</span></span>
                 <input type="email" name="email" placeholder="Enter your email" required />
                 <span class="field-error" data-error-for="email"></span>
               </label>
-              <label>Mobile Number
+              <label><span class="field-label">Mobile Number <span class="required-mark" aria-hidden="true">*</span></span>
                 <input type="tel" name="mobileNumber" placeholder="09XXXXXXXXX" required />
                 <span class="field-error" data-error-for="mobileNumber"></span>
               </label>
@@ -171,7 +175,7 @@
           <fieldset class="services-form-group project-details">
             <legend>Project Selection</legend>
             <div class="services-inquiry-grid">
-              <label>Service Type
+              <label><span class="field-label">Service Type <span class="required-mark" aria-hidden="true">*</span></span>
                 <select name="service" id="serviceSelect" required>
                   <option value="">Choose a service or project type</option>
                   <option value="Wedding Photo/Video">Wedding Photo/Video</option>
@@ -183,15 +187,12 @@
                   <option value="Pageant / Event Coverage">Pageant / Event Coverage</option>
                   <option value="Creative Film / Documentary">Creative Film / Documentary</option>
                   <option value="Product / Brand Event">Product / Brand Event</option>
-                  <option value="Photo Only">Photo Only</option>
-                  <option value="Video Only">Video Only</option>
-                  <option value="Photo + Video Coverage">Photo + Video Coverage</option>
                   <option value="Other / Custom Project">Other / Custom Project</option>
                 </select>
                 <span class="field-error" data-error-for="service"></span>
               </label>
-              <label>Coverage Needed
-                <select name="coverageNeeded" id="coverageNeededSelect">
+              <label><span class="field-label">Coverage Needed <span class="required-mark" aria-hidden="true">*</span></span>
+                <select name="coverageNeeded" id="coverageNeededSelect" required>
                   <option value="Not sure yet">Not sure yet</option>
                   <option value="Photo only">Photo only</option>
                   <option value="Video only">Video only</option>
@@ -200,7 +201,7 @@
                 </select>
                 <span class="field-error" data-error-for="coverageNeeded"></span>
               </label>
-              <label class="services-custom-project-field" id="customProjectField" hidden>Tell us what type of project this is
+              <label class="services-custom-project-field" id="customProjectField" hidden><span class="field-label">Tell us what type of project this is <span class="required-mark" aria-hidden="true">*</span></span>
                 <input type="text" name="customProjectType" placeholder="Example: short documentary, brand story, private event" />
                 <span class="field-error" data-error-for="customProjectType"></span>
               </label>
@@ -212,19 +213,19 @@
           <fieldset class="services-form-group schedule-details">
             <legend>Schedule &amp; Budget</legend>
             <div class="services-inquiry-grid schedule-grid">
-              <label class="inquiry-date-field">Preferred Date
+              <label class="inquiry-date-field"><span class="field-label">Preferred Date <span class="required-mark" aria-hidden="true">*</span> <span class="field-note">unless flexible</span></span>
                 <input type="date" name="date" required />
                 <span class="field-error" data-error-for="preferredDate"></span>
               </label>
               <label class="inquiry-flexible-date">
                 <span class="services-checkbox"><input type="checkbox" name="isDateFlexible" /> My schedule is flexible</span>
               </label>
-              <label>Event Location
-                <input type="text" name="location" placeholder="Venue, city, or location" />
+              <label><span class="field-label">Event Location <span class="required-mark" aria-hidden="true">*</span></span>
+                <input type="text" name="location" placeholder="Venue, city, or location" required />
                 <span class="field-error" data-error-for="location"></span>
               </label>
-              <label>Budget Range
-                <select name="budget">
+              <label><span class="field-label">Budget Range <span class="required-mark" aria-hidden="true">*</span></span>
+                <select name="budget" required>
                   <option value="Not sure - need guidance">Not sure &mdash; need guidance</option>
                   <option value="PHP 15,000 - PHP 30,000">PHP 15,000 - PHP 30,000</option>
                   <option value="PHP 30,000 - PHP 60,000">PHP 30,000 - PHP 60,000</option>

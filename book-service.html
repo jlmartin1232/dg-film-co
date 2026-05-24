@@ -8,15 +8,16 @@
 </head>
 <body class="client-page booking-request-page">
   <header class="site-header dashboard-header">
-    <a class="logo" href="index.html">DG Film Co.</a>
+    <a class="logo" href="client-dashboard.html">DG Film Co.</a>
     <button class="menu-toggle" aria-label="Open navigation">Menu</button>
     <nav class="nav-links">
-      <a href="index.html">Home</a>
-      <a href="work.html">Work</a>
-      <a href="services.html">Services</a>
-      <a href="pricing.html">Pricing</a>
-      <a href="about.html">About</a>
+      <a href="client-dashboard.html">Dashboard</a>
+      <a href="client-works.html">Works / Portfolio</a>
       <a href="book-service.html" class="active">Book a Service</a>
+      <a href="my-bookings.html">My Projects</a>
+      <a href="upload-payment.html">Payments</a>
+      <a href="client-profile.html">Profile</a>
+      <button type="button" class="nav-button" data-logout>Logout</button>
     </nav>
   </header>
 
@@ -46,18 +47,18 @@
               <span class="field-error" data-error-for="packageName"></span>
             </label>
 
-            <label>Event Date
-              <input type="date" name="eventDate" />
+            <label><span class="field-label">Event Date <span class="required-mark" aria-hidden="true">*</span></span>
+              <input type="date" name="eventDate" required />
               <span class="field-error" data-error-for="eventDate"></span>
             </label>
 
-            <label>Event Time
-              <input type="time" name="eventTime" />
+            <label><span class="field-label">Event Time <span class="required-mark" aria-hidden="true">*</span></span>
+              <input type="time" name="eventTime" required />
               <span class="field-error" data-error-for="eventTime"></span>
             </label>
 
-            <label>Event Location
-              <input type="text" name="location" placeholder="Venue, city, or full location" />
+            <label><span class="field-label">Event Location <span class="required-mark" aria-hidden="true">*</span></span>
+              <input type="text" name="location" placeholder="Venue, city, or full location" required />
               <span class="field-error" data-error-for="location"></span>
             </label>
 
@@ -72,14 +73,14 @@
               <span class="field-error" data-error-for="budget"></span>
             </label>
 
-            <label>Contact Number
-              <input type="tel" name="contactNumber" placeholder="09XXXXXXXXX or +639XXXXXXXXX" />
+            <label><span class="field-label">Contact Number <span class="required-mark" aria-hidden="true">*</span></span>
+              <input type="tel" name="contactNumber" placeholder="09XXXXXXXXX or +639XXXXXXXXX" required />
               <span class="field-error" data-error-for="contactNumber"></span>
             </label>
           </div>
 
-          <label>Event Details
-            <textarea name="details" rows="5" placeholder="Describe the event, audience, mood, schedule, and final outputs you have in mind."></textarea>
+          <label><span class="field-label">Event Details <span class="required-mark" aria-hidden="true">*</span></span>
+            <textarea name="details" rows="5" placeholder="Describe the event, audience, mood, schedule, and final outputs you have in mind." required></textarea>
             <span class="field-error" data-error-for="details"></span>
           </label>
 
@@ -136,7 +137,7 @@
             <p class="eyebrow">Need Inspiration?</p>
             <h2>Need inspiration first?</h2>
             <p>Browse DG Film Co. works before choosing your service and package.</p>
-            <a class="btn ghost" href="work.html">View Portfolio</a>
+            <a class="btn ghost" href="client-works.html">View Portfolio</a>
           </article>
         </aside>
       </div>

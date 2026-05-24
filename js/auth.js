@@ -9,6 +9,21 @@ function dgShowMessage(element, message, type) {
   element.className = `form-message ${type}`;
 }
 
+function dgSetAuthFieldInvalid(field, invalid) {
+  if (!field) return;
+  field.classList.toggle('field-invalid', Boolean(invalid));
+  if (invalid) {
+    field.setAttribute('aria-invalid', 'true');
+  } else {
+    field.removeAttribute('aria-invalid');
+  }
+}
+
+function dgClearAuthFieldErrors(form) {
+  if (!form) return;
+  form.querySelectorAll('input').forEach((field) => dgSetAuthFieldInvalid(field, false));
+}
+
 function dgIsValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
@@ -62,36 +77,53 @@ function dgSetupRegisterForm() {
   const message = document.getElementById('registerMessage');
   if (!form) return;
 
+  form.querySelectorAll('input').forEach((field) => {
+    field.addEventListener('input', () => dgSetAuthFieldInvalid(field, false));
+  });
+
   form.addEventListener('submit', (event) => {
     event.preventDefault();
+    dgClearAuthFieldErrors(form);
 
     const fullName = form.fullName.value.trim();
     const email = form.email.value.trim().toLowerCase();
+    const contactNumber = form.mobileNumber ? form.mobileNumber.value.trim() : '';
     const password = form.password.value;
     const confirmPassword = form.confirmPassword.value;
 
     if (!fullName) {
+      dgSetAuthFieldInvalid(form.fullName, true);
       dgShowMessage(message, 'Full name is required.', 'error');
       return;
     }
 
     if (!email || !dgIsValidEmail(email)) {
+      dgSetAuthFieldInvalid(form.email, true);
       dgShowMessage(message, 'Please enter a valid email address.', 'error');
       return;
     }
 
     if (dgFindUserByEmail(email)) {
+      dgSetAuthFieldInvalid(form.email, true);
       dgShowMessage(message, 'An account with this email already exists.', 'error');
       return;
     }
 
+    if (contactNumber && !/^(09\d{9}|\+639\d{9})$/.test(contactNumber)) {
+      dgSetAuthFieldInvalid(form.mobileNumber, true);
+      dgShowMessage(message, 'Please enter a valid mobile number using 09XXXXXXXXX or +639XXXXXXXXX.', 'error');
+      return;
+    }
+
     if (!password || !dgValidatePassword(password)) {
+      dgSetAuthFieldInvalid(form.password, true);
       dgShowMessage(message, 'Password must be at least 8 characters and include uppercase, lowercase, and a number.', 'error');
       return;
     }
 
     if (password !== confirmPassword) {
-      dgShowMessage(message, 'Confirm password must match password.', 'error');
+      dgSetAuthFieldInvalid(form.confirmPassword, true);
+      dgShowMessage(message, 'Confirm password does not match', 'error');
       return;
     }
 
@@ -100,7 +132,9 @@ function dgSetupRegisterForm() {
     try {
       // Public registration always creates a client account.
       const users = DGData.getJson(DGData.keys.users, []);
-      users.push(DGData.createUser(fullName, email, password, 'client'));
+      const newUser = DGData.createUser(fullName, email, password, 'client');
+      newUser.contactNumber = contactNumber;
+      users.push(newUser);
       DGData.setJson(DGData.keys.users, users);
     } finally {
       // Navigation will hide the overlay; if something fails, clean up
@@ -114,6 +148,10 @@ function dgSetupLoginForm() {
   const form = document.getElementById('loginForm');
   const message = document.getElementById('loginMessage');
   if (!form) return;
+
+  form.querySelectorAll('input').forEach((field) => {
+    field.addEventListener('input', () => dgSetAuthFieldInvalid(field, false));
+  });
 
   const params = new URLSearchParams(window.location.search);
   const currentUser = DGData.getJson(DGData.keys.currentUser, null);
@@ -130,22 +168,28 @@ function dgSetupLoginForm() {
 
   form.addEventListener('submit', (event) => {
     event.preventDefault();
+    dgClearAuthFieldErrors(form);
 
     const email = form.email.value.trim().toLowerCase();
     const password = form.password.value;
 
     if (!email || !password) {
+      dgSetAuthFieldInvalid(form.email, !email);
+      dgSetAuthFieldInvalid(form.password, !password);
       dgShowMessage(message, 'Email and password are required.', 'error');
       return;
     }
 
     const user = dgFindUserByEmail(email);
     if (!user || user.password !== password) {
+      dgSetAuthFieldInvalid(form.email, true);
+      dgSetAuthFieldInvalid(form.password, true);
       dgShowMessage(message, 'Invalid email or password.', 'error');
       return;
     }
 
     if ((user.status || 'Active') === 'Disabled') {
+      dgSetAuthFieldInvalid(form.email, true);
       dgShowMessage(message, 'This account has been disabled. Please contact the administrator.', 'error');
       return;
     }

@@ -21,11 +21,11 @@
 
           <form class="auth-form" id="loginForm" novalidate>
             <div id="loginMessage" class="form-message" aria-live="polite"></div>
-            <label class="auth-field" for="loginEmail">Email address
-              <input id="loginEmail" type="email" name="email" placeholder="Enter your Email" autocomplete="email" />
+            <label class="auth-field" for="loginEmail"><span class="field-label">Email address <span class="required-mark" aria-hidden="true">*</span></span>
+              <input id="loginEmail" type="email" name="email" placeholder="Enter your Email" autocomplete="email" required />
             </label>
-            <label class="auth-field" for="loginPassword">Password
-              <input id="loginPassword" type="password" name="password" placeholder="Enter your password" autocomplete="current-password" />
+            <label class="auth-field" for="loginPassword"><span class="field-label">Password <span class="required-mark" aria-hidden="true">*</span></span>
+              <input id="loginPassword" type="password" name="password" placeholder="Enter your password" autocomplete="current-password" required />
             </label>
             <button type="submit" class="btn primary full">Log in</button>
           </form>
@@ -39,20 +39,20 @@
           <form class="auth-form register-form" id="registerForm" novalidate>
             <div id="registerMessage" class="form-message" aria-live="polite"></div>
             <div class="register-fields">
-              <label class="auth-field" for="registerName">Full Name
-                <input id="registerName" type="text" name="fullName" placeholder="Enter your full name" autocomplete="name" />
+              <label class="auth-field" for="registerName"><span class="field-label">Full Name <span class="required-mark" aria-hidden="true">*</span></span>
+                <input id="registerName" type="text" name="fullName" placeholder="Enter your full name" autocomplete="name" required />
               </label>
-              <label class="auth-field" for="registerEmail">Email Address
-                <input id="registerEmail" type="email" name="email" placeholder="Enter your Email" autocomplete="email" />
+              <label class="auth-field" for="registerEmail"><span class="field-label">Email Address <span class="required-mark" aria-hidden="true">*</span></span>
+                <input id="registerEmail" type="email" name="email" placeholder="Enter your Email" autocomplete="email" required />
               </label>
               <label class="auth-field" for="registerPhone">Mobile Number
                 <input id="registerPhone" type="tel" name="mobileNumber" placeholder="09XXXXXXXXX" autocomplete="tel" />
               </label>
-              <label class="auth-field" for="registerPassword">Password
-                <input id="registerPassword" type="password" name="password" placeholder="Create a password" autocomplete="new-password" />
+              <label class="auth-field" for="registerPassword"><span class="field-label">Password <span class="required-mark" aria-hidden="true">*</span></span>
+                <input id="registerPassword" type="password" name="password" placeholder="Create a password" autocomplete="new-password" required />
               </label>
-              <label class="auth-field register-confirm-field" for="registerConfirmPassword">Confirm Password
-                <input id="registerConfirmPassword" type="password" name="confirmPassword" placeholder="Re-enter your password" autocomplete="new-password" />
+              <label class="auth-field register-confirm-field" for="registerConfirmPassword"><span class="field-label">Confirm Password <span class="required-mark" aria-hidden="true">*</span></span>
+                <input id="registerConfirmPassword" type="password" name="confirmPassword" placeholder="Re-enter your password" autocomplete="new-password" required />
               </label>
             </div>
             <button type="submit" class="btn primary full">Create Account</button>

@@ -65,6 +65,237 @@ function dgMPricing() { return dgMGet(DGData.keys.pricing, []); }
 function dgMBookings() { return dgMGet(DGData.keys.bookings, []); }
 function dgMPayments() { return dgMGet(DGData.keys.payments, []); }
 
+const DG_PAYMENT_SETTINGS_KEY = 'dgPaymentSettings';
+const DG_PAYMENT_METHOD_OPTIONS = ['GCash', 'Bank Transfer', 'Cash / On-site Payment', 'Other'];
+
+function dgMPaymentMethodId(type) {
+  return ({
+    GCash: 'gcash',
+    'Bank Transfer': 'bank-transfer',
+    'Cash / On-site Payment': 'cash-onsite',
+    Other: 'other'
+  })[type] || '';
+}
+
+function dgMNormalizePaymentSettings(settings) {
+  const saved = settings && typeof settings === 'object' ? settings : {};
+  const records = Array.isArray(saved.methods) && saved.methods.some((method) => method && typeof method === 'object')
+    ? saved.methods
+    : [];
+  const enabledTypes = records.length
+    ? records.map((method) => method.type)
+    : (Array.isArray(saved.methods) ? saved.methods : Array.isArray(saved.acceptedMethods) ? saved.acceptedMethods : []);
+  const legacyReminder = String(saved.reminder || saved.paymentInstructions || '').trim();
+  const methods = DG_PAYMENT_METHOD_OPTIONS.filter((type) => enabledTypes.includes(type)).map((type) => {
+    const record = records.find((method) => method.type === type) || {};
+    if (type === 'GCash') {
+      return {
+        id: 'gcash',
+        type,
+        accountName: String(record.accountName || saved.gcash?.accountName || saved.gcashAccountName || '').trim(),
+        number: String(record.number || saved.gcash?.number || saved.gcashNumber || '').trim(),
+        instructions: String(record.instructions || saved.gcash?.instructions || saved.gcashInstructions || legacyReminder).trim()
+      };
+    }
+    if (type === 'Bank Transfer') {
+      return {
+        id: 'bank-transfer',
+        type,
+        bankName: String(record.bankName || saved.bank?.bankName || saved.bankName || '').trim(),
+        accountName: String(record.accountName || saved.bank?.accountName || saved.bankAccountName || '').trim(),
+        accountNumber: String(record.accountNumber || saved.bank?.accountNumber || saved.bankAccountNumber || '').trim(),
+        instructions: String(record.instructions || saved.bank?.instructions || saved.bankInstructions || legacyReminder).trim()
+      };
+    }
+    if (type === 'Cash / On-site Payment') {
+      return {
+        id: 'cash-onsite',
+        type,
+        instructions: String(record.instructions || saved.cash?.instructions || saved.cashInstructions || legacyReminder).trim()
+      };
+    }
+    return {
+      id: 'other',
+      type,
+      methodName: String(record.methodName || saved.other?.name || saved.otherMethodName || '').trim(),
+      instructions: String(record.instructions || saved.other?.instructions || saved.otherInstructions || legacyReminder).trim()
+    };
+  });
+  return { methods };
+}
+
+function dgMSetupPaymentSettings() {
+  const form = document.getElementById('paymentSettingsForm');
+  if (!form) return;
+  if (!dgManageAdmin()) return;
+  const panel = document.getElementById('paymentSettingsPanel');
+  const openButton = document.getElementById('openPaymentSettingsBtn');
+  const addButton = document.getElementById('addPaymentSettingsBtn');
+  const closeButtons = [document.getElementById('closePaymentSettingsBtn'), document.getElementById('cancelPaymentSettingsBtn')].filter(Boolean);
+  const summary = document.getElementById('paymentSettingsSummary');
+  const list = document.getElementById('paymentSettingsList');
+  const message = document.getElementById('paymentSettingsMessage');
+  const modalTitle = document.getElementById('paymentSettingsFormTitle');
+  const saveButton = document.getElementById('savePaymentSettingsBtn');
+  let editingType = '';
+
+  function renderSummary(settings) {
+    const methods = dgMNormalizePaymentSettings(settings).methods;
+    if (summary) summary.textContent = methods.length ? `Accepted methods: ${methods.map((method) => method.type).join(', ')}` : 'No payment details set yet.';
+    if (!list) return;
+    list.innerHTML = methods.length ? methods.map((method) => {
+      let details = '';
+      if (method.type === 'GCash') details = `${method.accountName ? `<span>Account Name: ${dgMEscape(method.accountName)}</span>` : ''}${method.number ? `<span>Number: ${dgMEscape(method.number)}</span>` : ''}`;
+      if (method.type === 'Bank Transfer') details = `${method.bankName ? `<span>Bank: ${dgMEscape(method.bankName)}</span>` : ''}${method.accountName ? `<span>Account Name: ${dgMEscape(method.accountName)}</span>` : ''}${method.accountNumber ? `<span>Account Number: ${dgMEscape(method.accountNumber)}</span>` : ''}`;
+      if (method.type === 'Cash / On-site Payment') details = method.instructions ? `<span>${dgMEscape(method.instructions)}</span>` : '';
+      if (method.type === 'Other') details = method.methodName ? `<span>${dgMEscape(method.methodName)}</span>` : '';
+      return `
+        <article class="payment-settings-item">
+          <div><strong>${dgMEscape(method.type)}</strong>${details}</div>
+          <div class="payment-settings-actions">
+            <button class="btn ghost small" type="button" data-payment-method-edit="${dgMEscape(method.type)}">Edit</button>
+            <button class="btn danger small" type="button" data-payment-method-remove="${dgMEscape(method.type)}">Remove</button>
+          </div>
+        </article>
+      `;
+    }).join('') : '<p class="payment-settings-empty">No payment methods added yet.</p>';
+  }
+
+  function showMessage(text) {
+    if (!message) return;
+    message.textContent = text;
+    message.className = text ? 'form-message success' : 'form-message';
+  }
+
+  function updateDynamicFields() {
+    const selected = form.elements.methodType.value;
+    form.querySelectorAll('[data-payment-fields]').forEach((section) => {
+      section.hidden = selected !== section.dataset.paymentFields;
+    });
+  }
+
+  function clearForm() {
+    form.reset();
+    form.querySelector('[data-error-for="methodType"]').textContent = '';
+    form.elements.methodType.disabled = false;
+    editingType = '';
+    updateDynamicFields();
+  }
+
+  function loadMethod(method) {
+    clearForm();
+    if (!method) return;
+    editingType = method.type;
+    form.elements.methodType.value = method.type;
+    form.elements.methodType.disabled = true;
+    if (method.type === 'GCash') {
+      form.elements.gcashAccountName.value = method.accountName;
+      form.elements.gcashNumber.value = method.number;
+      form.elements.gcashInstructions.value = method.instructions;
+    }
+    if (method.type === 'Bank Transfer') {
+      form.elements.bankName.value = method.bankName;
+      form.elements.bankAccountName.value = method.accountName;
+      form.elements.bankAccountNumber.value = method.accountNumber;
+      form.elements.bankInstructions.value = method.instructions;
+    }
+    if (method.type === 'Cash / On-site Payment') form.elements.cashInstructions.value = method.instructions;
+    if (method.type === 'Other') {
+      form.elements.otherMethodName.value = method.methodName;
+      form.elements.otherInstructions.value = method.instructions;
+    }
+    updateDynamicFields();
+  }
+
+  function openPanel(method = null) {
+    loadMethod(method);
+    if (modalTitle) modalTitle.textContent = method ? 'Edit Payment Method' : 'Add Payment Method';
+    if (saveButton) saveButton.textContent = method ? 'Save Changes' : 'Save Payment Method';
+    if (panel) panel.hidden = false;
+    form.hidden = false;
+    (method ? form.querySelector('[data-payment-fields]:not([hidden]) input, [data-payment-fields]:not([hidden]) textarea') : form.elements.methodType)?.focus();
+  }
+
+  function closePanel() {
+    if (panel) panel.hidden = true;
+    form.hidden = true;
+    clearForm();
+  }
+
+  openButton?.addEventListener('click', () => {
+    clearForm();
+    form.hidden = true;
+    if (panel) panel.hidden = false;
+  });
+  addButton?.addEventListener('click', () => openPanel());
+  closeButtons.forEach((button) => button.addEventListener('click', closePanel));
+  panel?.addEventListener('click', (event) => {
+    if (event.target === panel) closePanel();
+  });
+  form.elements.methodType.addEventListener('change', updateDynamicFields);
+
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const type = editingType || form.elements.methodType.value;
+    const error = form.querySelector('[data-error-for="methodType"]');
+    if (!DG_PAYMENT_METHOD_OPTIONS.includes(type)) {
+      error.textContent = 'Choose a payment method.';
+      return;
+    }
+    const settings = dgMNormalizePaymentSettings(dgMGet(DG_PAYMENT_SETTINGS_KEY, null));
+    if (!editingType && settings.methods.some((method) => method.type === type)) {
+      error.textContent = `${type} is already added. Use Edit to update it.`;
+      return;
+    }
+    let method = { id: dgMPaymentMethodId(type), type };
+    if (type === 'GCash') method = { ...method, accountName: form.elements.gcashAccountName.value.trim(), number: form.elements.gcashNumber.value.trim(), instructions: form.elements.gcashInstructions.value.trim() };
+    if (type === 'Bank Transfer') method = { ...method, bankName: form.elements.bankName.value.trim(), accountName: form.elements.bankAccountName.value.trim(), accountNumber: form.elements.bankAccountNumber.value.trim(), instructions: form.elements.bankInstructions.value.trim() };
+    if (type === 'Cash / On-site Payment') method = { ...method, instructions: form.elements.cashInstructions.value.trim() };
+    if (type === 'Other') method = { ...method, methodName: form.elements.otherMethodName.value.trim(), instructions: form.elements.otherInstructions.value.trim() };
+    const existingIndex = settings.methods.findIndex((item) => item.type === type);
+    if (existingIndex >= 0) settings.methods[existingIndex] = method;
+    else settings.methods.push(method);
+    settings.methods.sort((first, second) => DG_PAYMENT_METHOD_OPTIONS.indexOf(first.type) - DG_PAYMENT_METHOD_OPTIONS.indexOf(second.type));
+    settings.updatedAt = new Date().toISOString();
+    dgMSave(DG_PAYMENT_SETTINGS_KEY, settings);
+    renderSummary(settings);
+    form.hidden = true;
+    showMessage('Payment method saved.');
+    clearForm();
+  });
+
+  list?.addEventListener('click', (event) => {
+    const editButton = event.target.closest('[data-payment-method-edit]');
+    if (editButton) {
+      const method = dgMNormalizePaymentSettings(dgMGet(DG_PAYMENT_SETTINGS_KEY, null)).methods.find((item) => item.type === editButton.dataset.paymentMethodEdit);
+      if (method) openPanel(method);
+      return;
+    }
+    const removeButton = event.target.closest('[data-payment-method-remove]');
+    if (!removeButton) return;
+    const type = removeButton.dataset.paymentMethodRemove;
+    dgMConfirmAction({
+      title: 'Remove this payment method?',
+      message: `${type} will no longer be shown to clients as an accepted payment method.`,
+      confirmText: 'Remove',
+      variant: 'danger',
+      onConfirm: () => {
+        const settings = dgMNormalizePaymentSettings(dgMGet(DG_PAYMENT_SETTINGS_KEY, null));
+        settings.methods = settings.methods.filter((method) => method.type !== type);
+        settings.updatedAt = new Date().toISOString();
+        dgMSave(DG_PAYMENT_SETTINGS_KEY, settings);
+        renderSummary(settings);
+        showMessage('Payment method removed.');
+      }
+    });
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && panel && !panel.hidden) closePanel();
+  });
+  renderSummary(dgMGet(DG_PAYMENT_SETTINGS_KEY, null));
+}
+
 function dgMWorkflowStatuses() {
   return [
     'Pending Review',
@@ -371,7 +602,7 @@ function dgMSetupServices() {
     'Nightlife / Club Events',
     'Graduation / Event Coverage',
     'Pageant / Event Coverage',
-    'Music Video / Creative Film',
+    'Creative Film / Documentary',
     'Product / Brand Event'
   ];
 
@@ -386,6 +617,11 @@ function dgMSetupServices() {
   function isApprovedActiveService(name) {
     const canonicalName = canonicalServiceName(name);
     return approvedServiceNames.includes(canonicalName);
+  }
+
+  function isRetiredServiceName(name) {
+    return canonicalServiceName(name) !== name
+      || (typeof dgIsRetiredServiceLabel === 'function' && dgIsRetiredServiceLabel(name));
   }
 
   function updateSummary(services) {
@@ -404,7 +640,7 @@ function dgMSetupServices() {
     const services = dgMServices();
     let changed = false;
     services.forEach((service) => {
-      if (service.status === 'Active' && !isApprovedActiveService(service.name)) {
+      if (service.status === 'Active' && isRetiredServiceName(service.name)) {
         service.status = 'Inactive';
         changed = true;
       }
@@ -489,8 +725,7 @@ function dgMSetupServices() {
     if (description.length < 20) err('description', 'Description must be at least 20 characters.');
     if (form.startingPrice.value === '' || startingPrice < 0) err('startingPrice', 'Starting price must be 0 or greater.');
     if (!status) err('status', 'Status is required.');
-    if (canonicalServiceName(name) === 'Real Estate Shoot') err('serviceName', 'Retired services cannot be activated for new DG Film Co. bookings.');
-    if (status === 'Active' && !isApprovedActiveService(name)) err('serviceName', 'Active services must match the approved DG Film Co. service list.');
+    if (isRetiredServiceName(name)) err('serviceName', 'Retired service labels cannot be used for new DG Film Co. bookings.');
     if (!valid) return;
     const serviceSubmitBtn = form.querySelector('[type="submit"]');
     if (window.DGLoading) { DGLoading.show('Saving service…'); DGLoading.disableButton(serviceSubmitBtn); }
@@ -523,8 +758,8 @@ function dgMSetupServices() {
     if (toggle) {
       const svc = services.find((item) => item.id === toggle.dataset.serviceToggle);
       if (!svc) return;
-      if (svc.status === 'Inactive' && !isApprovedActiveService(svc.name)) {
-        dgMMessage('Only approved DG Film Co. services can be activated for new bookings.', 'error');
+      if (svc.status === 'Inactive' && isRetiredServiceName(svc.name)) {
+        dgMMessage('Retired service labels cannot be activated for new bookings.', 'error');
         return;
       }
       const activating = svc.status === 'Inactive';
@@ -596,7 +831,7 @@ function dgMSetupPricing() {
     'Nightlife / Club Events',
     'Graduation / Event Coverage',
     'Pageant / Event Coverage',
-    'Music Video / Creative Film',
+    'Creative Film / Documentary',
     'Product / Brand Event'
   ];
   dgMPopulateServiceSelect(form.serviceId);
@@ -992,5 +1227,6 @@ document.addEventListener('DOMContentLoaded', () => {
   dgMSetupUsers();
   dgMSetupServices();
   dgMSetupPricing();
+  dgMSetupPaymentSettings();
   dgMSetupReports();
 });

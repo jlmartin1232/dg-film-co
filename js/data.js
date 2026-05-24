@@ -121,8 +121,22 @@ const DG_LEGACY_SERVICE_ALIASES = {
   'Graduation Shoot': 'Graduation / Event Coverage'
 };
 
+const DG_RETIRED_SERVICE_LABELS = [
+  'Real Estate',
+  'Real Estate Shoot',
+  'Skyline Residence',
+  'Property Films',
+  'Listing Photos',
+  'Walkthroughs'
+];
+
 function dgCanonicalServiceName(name) {
   return DG_LEGACY_SERVICE_ALIASES[name] || name;
+}
+
+function dgIsRetiredServiceLabel(name) {
+  const normalizedName = String(name || '').trim().toLowerCase();
+  return DG_RETIRED_SERVICE_LABELS.some((label) => label.toLowerCase() === normalizedName);
 }
 
 function dgDefaultPricing(services, startingCounter = 1) {
@@ -175,6 +189,26 @@ function dgNormalizeServices() {
       createdAt: stored.createdAt || createdAt
     };
   });
+  const retainedCustomServices = previousServices
+    .filter((service) => {
+      const name = String(service.name || '').trim();
+      if (!name || dgIsRetiredServiceLabel(name)) return false;
+      return !DG_DEFAULT_SERVICES.some((defaultService) => dgCanonicalServiceName(name) === defaultService.name);
+    })
+    .map((service, index) => {
+      const rawStatus = String(service.status || 'Inactive').toLowerCase();
+      return {
+        ...service,
+        id: service.id || `SVC-CUSTOM-${String(index + 1).padStart(3, '0')}`,
+        name: String(service.name).trim(),
+        category: service.category || 'Custom',
+        description: service.description || 'Custom project coverage arranged with DG Film Co.',
+        startingPrice: Number(service.startingPrice || 0),
+        status: rawStatus === 'inactive' || rawStatus === 'disabled' ? 'Inactive' : 'Active',
+        createdAt: service.createdAt || createdAt
+      };
+    });
+  services.push(...retainedCustomServices);
   dgSetJson(DG_STORAGE_KEYS.services, services);
   return services;
 }

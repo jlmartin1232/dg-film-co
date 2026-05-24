@@ -74,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   <h2>PHP ${Number(pkg.price || 0).toLocaleString('en-PH')}</h2>
                   <h3>${escapeHtml(pkg.packageName)}</h3>
                   <ul>${(pkg.deliverables || []).map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>
-                  <a href="book-service.html?service=${encodeURIComponent(pkg.serviceName)}&package=${encodeURIComponent(pkg.packageName)}" class="btn ghost">Book This Package</a>
+                  <a href="contact.html?service=${encodeURIComponent(pkg.serviceName)}&package=${encodeURIComponent(pkg.packageName)}" class="btn ghost">Book This Package</a>
                 </article>
               `).join('')}
             </div>

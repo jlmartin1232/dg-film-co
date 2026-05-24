@@ -89,7 +89,17 @@ function dgAdminFormatDate(value) {
 
 function dgAdminFormatDateTime(value) {
   if (!value) return 'Not set';
-  return new Date(value).toLocaleString('en-PH', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  return new Date(value).toLocaleString('en-PH', { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true });
+}
+
+function dgAdminFormatTime(value) {
+  if (!value) return 'Not set';
+  const match = String(value).match(/^(\d{1,2}):(\d{2})/);
+  if (!match) return String(value);
+  const hour = Number(match[1]);
+  const minute = match[2];
+  if (hour > 23) return String(value);
+  return `${hour % 12 || 12}:${minute} ${hour >= 12 ? 'PM' : 'AM'}`;
 }
 
 function dgAdminToday() {
@@ -103,6 +113,9 @@ function dgAdminNormalizeBooking(booking) {
   booking.preferredMeetingMode = booking.preferredMeetingMode || '';
   booking.preferredMeetingNotes = booking.preferredMeetingNotes || '';
   booking.meetingLocation = booking.meetingLocation || '';
+  booking.meetingContactName = booking.meetingContactName || '';
+  booking.meetingContactRole = booking.meetingContactRole || '';
+  booking.meetingContactDetail = booking.meetingContactDetail || '';
   booking.rescheduleRequest = booking.rescheduleRequest || null;
   booking.meetingClientConfirmation = booking.meetingClientConfirmation || null;
   booking.postMeetingNotes = booking.postMeetingNotes || '';
@@ -182,6 +195,7 @@ function dgAdminReceiptDetails(payment) {
         <div><dt>File Size</dt><dd>${dgAdminFormatFileSize(payment.receiptFileSize)}</dd></div>
         <div><dt>Uploaded At</dt><dd>${dgAdminFormatDateTime(payment.receiptUploadedAt || payment.createdAt)}</dd></div>
         <div><dt>Reference Number</dt><dd>${dgAdminEscape(payment.referenceNumber || 'Not set')}</dd></div>
+        <div><dt>Mode of Payment</dt><dd>${dgAdminEscape(payment.paymentMethod || 'Not set')}</dd></div>
         <div><dt>Amount Paid</dt><dd>${dgAdminMoney(payment.amountPaid)}</dd></div>
       </dl>
       ${payment.receiptPreviewDataUrl ? `
@@ -580,10 +594,13 @@ function dgAdminScheduleMeeting(bookingId, values) {
   booking.meetingTime = values.meetingTime;
   booking.meetingMode = values.meetingMode;
   booking.meetingLocation = values.meetingLocation;
+  booking.meetingContactName = values.meetingContactName || '';
+  booking.meetingContactRole = values.meetingContactRole || '';
+  booking.meetingContactDetail = values.meetingContactDetail || '';
   booking.meetingNotes = values.meetingNotes || '';
   dgAdminAddHistory(booking, 'Meeting scheduled', currentUser);
   dgAdminSaveBookings(bookings);
-  dgAdminNotifyClient(booking, 'Meeting scheduled', `Your consultation for ${booking.id} is scheduled on ${dgAdminFormatDate(booking.meetingDate)} at ${booking.meetingTime}.`, 'meeting');
+  dgAdminNotifyClient(booking, 'Meeting scheduled', `Your consultation for ${booking.id} is scheduled on ${dgAdminFormatDate(booking.meetingDate)} at ${dgAdminFormatTime(booking.meetingTime)}.`, 'meeting');
   dgAdminShowMessage(`Meeting scheduled for ${bookingId}.`);
   return true;
 }
@@ -1258,7 +1275,7 @@ function dgAdminRenderManageBookings() {
       ['Service Type', manualForm.serviceType.value],
       ['Package', manualForm.packageName.value],
       ['Event Date', dgAdminFormatDate(manualForm.eventDate.value)],
-      ['Event Time', manualForm.eventTime.value || 'Not set'],
+      ['Event Time', dgAdminFormatTime(manualForm.eventTime.value)],
       ['Event Location', manualForm.location.value.trim()],
       ['Budget Range', manualForm.budget.value],
       ['Initial Status', statusLabel]
@@ -1734,9 +1751,12 @@ function dgAdminMeetingDetails(booking) {
     <dl class="details-grid">
       <div><dt>Meeting Status</dt><dd>${dgAdminBadge(booking.meetingStatus)}</dd></div>
       <div><dt>Meeting Date</dt><dd>${dgAdminFormatDate(booking.meetingDate)}</dd></div>
-      <div><dt>Meeting Time</dt><dd>${dgAdminEscape(booking.meetingTime || 'Not set')}</dd></div>
+      <div><dt>Meeting Time</dt><dd>${dgAdminEscape(dgAdminFormatTime(booking.meetingTime))}</dd></div>
       <div><dt>Meeting Mode</dt><dd>${dgAdminEscape(booking.meetingMode || 'Not set')}</dd></div>
       <div class="wide"><dt>Meeting Location / Link / Contact Number</dt><dd>${dgAdminEscape(booking.meetingLocation || 'Not set')}</dd></div>
+      <div><dt>Meeting Contact Name</dt><dd>${dgAdminEscape(booking.meetingContactName || 'DG Film Co. Coordinator')}</dd></div>
+      <div><dt>Meeting Contact Role</dt><dd>${dgAdminEscape(booking.meetingContactRole || 'Project Coordinator')}</dd></div>
+      <div class="wide"><dt>Meeting Contact Detail</dt><dd>${dgAdminEscape(booking.meetingContactDetail || 'Contact details will be shared through the client registered email or mobile number.')}</dd></div>
       <div class="wide"><dt>Meeting Notes</dt><dd>${dgAdminEscape(booking.meetingNotes || 'None')}</dd></div>
     </dl>
   `;
@@ -1807,7 +1827,7 @@ function dgAdminRescheduleRequestCard(booking) {
       </div>
       <dl class="details-grid compact-details">
         <div><dt>Requested New Date</dt><dd>${dgAdminFormatDate(request.requestedDate)}</dd></div>
-        <div><dt>Requested New Time</dt><dd>${dgAdminEscape(request.requestedTime || 'Not set')}</dd></div>
+          <div><dt>Requested New Time</dt><dd>${dgAdminEscape(dgAdminFormatTime(request.requestedTime))}</dd></div>
         <div><dt>Requested At</dt><dd>${dgAdminFormatDateTime(request.requestedAt)}</dd></div>
         <div><dt>Requested By</dt><dd>${dgAdminEscape(request.requestedBy || 'Client')}</dd></div>
         <div class="wide"><dt>Reason / Message</dt><dd>${dgAdminEscape(request.reason || 'None provided')}</dd></div>
@@ -1842,6 +1862,15 @@ function dgAdminMeetingForm(booking) {
         </label>
         <label>Meeting Location / Link / Contact Number
           <input type="text" name="meetingLocation" value="${dgAdminEscape(booking.meetingLocation || '')}" placeholder="Google Meet link, phone number, studio address, or meeting place" />
+        </label>
+        <label>Meeting Contact Name
+          <input type="text" name="meetingContactName" value="${dgAdminEscape(booking.meetingContactName || '')}" placeholder="Name of the person meeting the client" />
+        </label>
+        <label>Meeting Contact Role
+          <input type="text" name="meetingContactRole" value="${dgAdminEscape(booking.meetingContactRole || '')}" placeholder="Example: Project Coordinator" />
+        </label>
+        <label class="wide">Meeting Contact Number or Contact Detail
+          <input type="text" name="meetingContactDetail" value="${dgAdminEscape(booking.meetingContactDetail || '')}" placeholder="Mobile number, email, or contact instruction" />
         </label>
       </div>
       <label>Meeting Notes <span class="optional">Optional</span>
@@ -1916,6 +1945,7 @@ function dgAdminPaymentRows(payments) {
         <tr>
           <th>Payment Type</th>
           <th>Reference</th>
+          <th>Mode of Payment</th>
           <th>Amount</th>
           <th>Date</th>
           <th>Status</th>
@@ -1927,6 +1957,7 @@ function dgAdminPaymentRows(payments) {
           <tr>
             <td>${dgAdminEscape(payment.paymentType || 'Down Payment')}</td>
             <td>${dgAdminEscape(payment.referenceNumber)}</td>
+            <td>${dgAdminEscape(payment.paymentMethod || 'Not set')}</td>
             <td>${dgAdminMoney(payment.amountPaid)}</td>
             <td>${dgAdminFormatDate(payment.paymentDate)}</td>
             <td>${dgAdminBadge(payment.status)}</td>
@@ -2118,6 +2149,7 @@ function dgAdminRenderPayments() {
           <div><span>Invoice ID</span><strong>${dgAdminEscape(payment.invoiceId || booking?.invoice?.invoiceId || 'Not set')}</strong></div>
           <div><span>Client Name</span><strong>${dgAdminEscape(booking ? booking.clientName : 'Unknown')}</strong></div>
           <div><span>Amount Paid</span><strong>${dgAdminMoney(payment.amountPaid)}</strong></div>
+          <div><span>Mode of Payment</span><strong>${dgAdminEscape(payment.paymentMethod || 'Not set')}</strong></div>
           <div><span>Reference Number</span><strong>${dgAdminEscape(payment.referenceNumber || 'Not set')}</strong></div>
           <div><span>Payment Date</span><strong>${dgAdminFormatDate(payment.paymentDate)}</strong></div>
         </div>
@@ -2196,7 +2228,7 @@ function dgAdminRenderDetails() {
       <div><dt>Client ID</dt><dd>${dgAdminEscape(booking.clientId)}</dd></div>
       <div><dt>Package</dt><dd>${dgAdminEscape(booking.packageName)}</dd></div>
       <div><dt>Event Date</dt><dd>${dgAdminFormatDate(booking.eventDate)}</dd></div>
-      <div><dt>Event Time</dt><dd>${dgAdminEscape(booking.eventTime)}</dd></div>
+      <div><dt>Event Time</dt><dd>${dgAdminEscape(dgAdminFormatTime(booking.eventTime))}</dd></div>
       <div><dt>Location</dt><dd>${dgAdminEscape(booking.location)}</dd></div>
       <div><dt>Budget</dt><dd>${dgAdminEscape(booking.budget)}</dd></div>
       <div><dt>Contact Number</dt><dd>${dgAdminEscape(booking.contactNumber)}</dd></div>
@@ -2394,6 +2426,9 @@ function dgAdminRenderDetails() {
             meetingTime: meetingForm.meetingTime.value,
             meetingMode: meetingForm.meetingMode.value,
             meetingLocation: meetingForm.meetingLocation.value.trim(),
+            meetingContactName: meetingForm.meetingContactName.value.trim(),
+            meetingContactRole: meetingForm.meetingContactRole.value.trim(),
+            meetingContactDetail: meetingForm.meetingContactDetail.value.trim(),
             meetingNotes: meetingForm.meetingNotes.value.trim()
           });
         } finally {
@@ -2437,6 +2472,31 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 document.addEventListener('click', (event) => {
+  const floatingPaymentAction = event.target.closest('.payment-floating-menu [data-payment-action]');
+  if (floatingPaymentAction) {
+    event.preventDefault();
+    const action = floatingPaymentAction.dataset.paymentAction;
+    const paymentId = floatingPaymentAction.dataset.id;
+    dgAdminClosePaymentMenus();
+    dgAdminConfirmAction({
+      ...dgAdminPaymentConfirmOptions(action, paymentId),
+      onConfirm: () => {
+        const message = { Verified: 'Verifying payment...', Rejected: 'Rejecting payment...', 'Needs Resubmission': 'Requesting resubmission...' }[action] || 'Updating payment...';
+        if (window.DGLoading) DGLoading.show(message);
+        let changed = false;
+        try {
+          changed = dgAdminUpdatePayment(paymentId, action);
+        } finally {
+          if (window.DGLoading) DGLoading.hide();
+        }
+        if (changed) {
+          dgAdminRenderDetails();
+          dgAdminRenderPayments();
+        }
+      }
+    });
+    return;
+  }
   if (event.target.closest('[data-payment-more-menu], .payment-floating-menu')) return;
   dgAdminClosePaymentMenus();
 });

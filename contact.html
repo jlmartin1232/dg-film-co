@@ -6,7 +6,7 @@
   <title>Contact | DG Film Co.</title>
   <link rel="stylesheet" href="css/styles.css" />
 </head>
-<body>
+<body class="contact-page">
   <header class="site-header">
     <a class="logo" href="index.html">DG Film Co.</a>
     <button class="menu-toggle" aria-label="Open navigation">Menu</button>
@@ -16,81 +16,107 @@
       <a href="services.html">Services</a>
       <a href="pricing.html">Pricing</a>
       <a href="about.html">About</a>
+      <a href="contact.html" class="active">Contact</a>
       <a href="login.html">Login</a>
       <a href="register.html">Register</a>
-      <a href="contact.html" class="nav-cta active">Book a Shoot</a>
+      <a href="contact.html" class="nav-cta">Book a Shoot</a>
     </nav>
   </header>
 
   <main class="page-main">
-    <section class="page-hero small">
-      <p class="eyebrow">Contact / Book</p>
-      <h1>Tell us what you’re planning.</h1>
-      <p>Complete the form and our team will review your inquiry within 24 hours.</p>
+    <section class="page-hero small contact-hero">
+      <p class="eyebrow">Contact</p>
+      <h1>Let&rsquo;s talk about your project.</h1>
+      <p>For bookings, collaborations, and project inquiries, send us a message and we&rsquo;ll help you plan the right coverage.</p>
     </section>
 
-    <section class="section contact-layout">
-      <form class="inquiry-form" id="inquiryForm" action="thank-you.html">
+    <section class="section contact-details-section" aria-label="Contact details">
+      <article class="public-contact-card">
+        <p class="eyebrow">Project Inquiries</p>
+        <h2>Email</h2>
+        <a href="mailto:inquiries@dgfilmco.com">inquiries@dgfilmco.com</a>
+      </article>
+      <article class="public-contact-card">
+        <p class="eyebrow">Call or Message</p>
+        <h2>Mobile</h2>
+        <span>09496532685</span>
+      </article>
+      <article class="public-contact-card">
+        <p class="eyebrow">Socials</p>
+        <h2>Facebook</h2>
+        <span>DG Film Co.</span>
+      </article>
+      <article class="public-contact-card">
+        <p class="eyebrow">Service Area</p>
+        <h2>Service Area</h2>
+        <span>Serving clients across Asia</span>
+      </article>
+    </section>
+
+    <section class="section contact-inquiry-section">
+      <div class="contact-inquiry-copy">
+        <p class="eyebrow">Quick Inquiry</p>
+        <h2>Share the first details.</h2>
+        <p>Tell us what you have in mind and how we can reach you. Our team will respond with the next steps for your project.</p>
+      </div>
+
+      <form class="inquiry-form contact-inquiry-form" id="contactInquiryForm" novalidate>
         <input type="text" name="website" class="hidden-field" tabindex="-1" autocomplete="off" />
-
-        <label>Full Name
-          <input type="text" name="name" placeholder="Your name" required />
+        <div class="contact-form-grid">
+          <label><span class="field-label">Full Name <span class="required-mark" aria-hidden="true">*</span></span>
+            <input type="text" name="name" placeholder="Enter your full name" required />
+            <span class="field-error" data-contact-error="name"></span>
+          </label>
+          <label><span class="field-label">Email Address <span class="required-mark" aria-hidden="true">*</span></span>
+            <input type="email" name="email" placeholder="Enter your email address" required />
+            <span class="field-error" data-contact-error="email"></span>
+          </label>
+          <label><span class="field-label">Mobile Number <span class="required-mark" aria-hidden="true">*</span></span>
+            <input type="tel" name="mobileNumber" placeholder="Enter your mobile number" required />
+            <span class="field-error" data-contact-error="mobileNumber"></span>
+          </label>
+          <label><span class="field-label">Inquiry Type <span class="required-mark" aria-hidden="true">*</span></span>
+            <select name="inquiryType" required>
+              <option value="">Choose an inquiry type</option>
+              <option value="General Inquiry">General Inquiry</option>
+              <option value="Booking Inquiry">Booking Inquiry</option>
+              <option value="Pricing Question">Pricing Question</option>
+              <option value="Collaboration">Collaboration</option>
+              <option value="Other">Other</option>
+            </select>
+            <span class="field-error" data-contact-error="inquiryType"></span>
+          </label>
+          <label data-contact-prefill="service" hidden>Requested Service
+            <input type="text" name="requestedService" />
+          </label>
+          <label data-contact-prefill="package" hidden>Selected Package
+            <input type="text" name="requestedPackage" />
+          </label>
+        </div>
+        <label><span class="field-label">Message <span class="required-mark" aria-hidden="true">*</span></span>
+          <textarea name="message" rows="6" placeholder="Tell us about your project, occasion, or question." required></textarea>
+          <span class="field-error" data-contact-error="message"></span>
         </label>
-
-        <label>Email Address
-          <input type="email" name="email" placeholder="you@email.com" required />
-        </label>
-
-        <label>Service Type
-          <select name="service" id="serviceSelect" required>
-            <option value="">Choose a service</option>
-            <option value="Wedding">Wedding</option>
-            <option value="Corporate">Corporate</option>
-            <option value="Music / Film">Music / Film</option>
-            <option value="Restaurant / Food Promo">Restaurant / Food Promo</option>
-            <option value="Nightlife">Nightlife</option>
-          </select>
-        </label>
-
-        <label id="dynamicQuestionLabel">Project Detail
-          <input type="text" name="detail" id="dynamicQuestion" placeholder="Tell us the main idea of your project" />
-        </label>
-
-        <label>Date
-          <input type="text" name="date" placeholder="Project date or 'still flexible'" />
-        </label>
-
-        <label>Location / City
-          <input type="text" name="location" placeholder="City or venue" />
-        </label>
-
-        <label>Budget Range
-          <select name="budget">
-            <option value="Not sure — need guidance">Not sure — need guidance</option>
-            <option value="₱15,000 - ₱30,000">₱15,000 - ₱30,000</option>
-            <option value="₱30,000 - ₱60,000">₱30,000 - ₱60,000</option>
-            <option value="₱60,000+">₱60,000+</option>
-          </select>
-        </label>
-
-        <label>Tell us about it
-          <textarea name="message" rows="5" placeholder="What do you want the final video/photos to feel like?"></textarea>
-        </label>
-
-        <label>How did you hear about us? <span class="optional">Optional</span>
-          <input type="text" name="source" placeholder="Instagram, referral, Google, school, etc." />
-        </label>
-
-        <button type="submit" class="btn primary full">Submit inquiry</button>
+        <button type="submit" class="btn primary">Send Inquiry</button>
       </form>
+    </section>
 
-      <aside class="contact-card">
-        <p class="eyebrow">Why this form is short</p>
-        <h2>We only ask what matters first.</h2>
-        <p>This inquiry form avoids unnecessary fields like full address, required phone number, equipment list, and long shot lists. Those details are better discussed during a discovery call.</p>
-        <div class="contact-detail"><strong>Email</strong><span>hello@dgfilmco.com</span></div>
-        <div class="contact-detail"><strong>Instagram</strong><span>@dgfilmco</span></div>
-      </aside>
+    <div class="contact-form-success" id="contactFormSuccess" hidden>
+      <section class="contact-form-success-panel" role="dialog" aria-modal="true" aria-labelledby="contactSuccessTitle" aria-describedby="contactSuccessMessage">
+        <p class="eyebrow">Inquiry Sent</p>
+        <h2 id="contactSuccessTitle">Thanks for reaching out.</h2>
+        <p id="contactSuccessMessage">We received your inquiry. Please keep an eye on your email or mobile number so our team can contact you about the next steps.</p>
+        <div class="contact-form-success-actions">
+          <a class="btn ghost" href="index.html">Back to Home</a>
+          <button class="btn primary" type="button" data-contact-send-another>Send another inquiry</button>
+        </div>
+      </section>
+    </div>
+
+    <section class="cta-section contact-cta">
+      <p class="eyebrow">Begin Your Project</p>
+      <h2>Ready to plan a shoot?</h2>
+      <a class="btn primary" href="contact.html#contactInquiryForm">Start a booking</a>
     </section>
   </main>
 
@@ -98,5 +124,6 @@
   <script src="js/data.js"></script>
   <script src="js/loading.js"></script>
   <script src="js/script.js"></script>
+  <script src="js/main.js"></script>
 </body>
 </html>

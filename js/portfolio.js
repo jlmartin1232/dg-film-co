@@ -95,7 +95,7 @@ const DG_PORTFOLIO_CATEGORIES = [
 ];
 
 const DG_PORTFOLIO_SHOWREEL = {
-  title: 'DG Film Co. Showreel',
+  title: 'Visual Story',
   poster: '',
   video: 'assets/videos/hero/hero-reel.mp4'
 };
@@ -110,7 +110,7 @@ function dgPortfolioEscape(value) {
 }
 
 function dgPortfolioBookHref(service) {
-  return `book-service.html?service=${encodeURIComponent(service || '')}`;
+  return `contact.html?service=${encodeURIComponent(service || '')}`;
 }
 
 function dgPortfolioWorkHref() {
@@ -187,9 +187,9 @@ function dgRenderPortfolioPage() {
           ...DG_PORTFOLIO_SHOWREEL
         }, 'hero')}
         <div class="showreel-copy">
-          <p class="eyebrow">Featured showreel</p>
-          <h2>See recent DG Film Co. work in motion.</h2>
-          <p>View highlights from weddings, celebrations, commercial shoots, events, food promotions, and brand projects.</p>
+          <p class="eyebrow">Featured project</p>
+          <h2>Built from passion, framed with intention.</h2>
+          <p>A cinematic montage created with deliberate pacing, textured details, and a strong sense of atmosphere &mdash; a personal piece that reflects the way we frame stories with energy and intention.</p>
         </div>
       </article>
     `;

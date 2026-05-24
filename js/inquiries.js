@@ -185,7 +185,44 @@ function dgInquiryConvertWithClient(inquiryId, client) {
   if (!inquiry || !['New', 'Contacted', 'Ready to Book'].includes(inquiry.status)) return false;
   const bookings = DGData.getJson(DGData.keys.bookings, []);
   const services = DGData.getJson(DGData.keys.services, []);
-  const service = services.find((item) => item.name === inquiry.serviceType);
+  const requestedServiceType = String(inquiry.serviceType || '').trim();
+  const canonicalServiceType = typeof dgCanonicalServiceName === 'function'
+    ? dgCanonicalServiceName(requestedServiceType)
+    : requestedServiceType;
+  const officialServiceNames = typeof DG_DEFAULT_SERVICES !== 'undefined'
+    ? DG_DEFAULT_SERVICES.map((item) => item.name)
+    : [];
+  const isOfficialService = officialServiceNames.includes(canonicalServiceType);
+  let service = isOfficialService
+    ? services.find((item) => item.name === canonicalServiceType)
+    : services.find((item) => item.name === 'Other / Custom Project');
+  if (isOfficialService && !service) {
+    const defaultService = DG_DEFAULT_SERVICES.find((item) => item.name === canonicalServiceType);
+    service = { ...defaultService, createdAt: new Date().toISOString() };
+    services.push(service);
+    DGData.setJson(DGData.keys.services, services);
+  }
+  if (!isOfficialService && !service) {
+    service = {
+      id: dgInquiryNextId('SVC', services),
+      name: 'Other / Custom Project',
+      category: 'Custom',
+      description: 'Custom project coverage arranged after inquiry review.',
+      startingPrice: 0,
+      status: 'Inactive',
+      createdAt: new Date().toISOString()
+    };
+    services.push(service);
+    DGData.setJson(DGData.keys.services, services);
+  }
+  const bookingServiceType = isOfficialService ? canonicalServiceType : 'Other / Custom Project';
+  const originalInquiryDetails = [
+    requestedServiceType && !isOfficialService ? `Inquiry type: ${requestedServiceType}` : '',
+    inquiry.coverageNeeded ? `Coverage needed: ${inquiry.coverageNeeded}` : '',
+    inquiry.customProjectType ? `Custom project type: ${inquiry.customProjectType}` : '',
+    inquiry.packageName ? `Selected package: ${inquiry.packageName}` : '',
+    inquiry.celebrationMoments ? `Inquiry project detail: ${inquiry.celebrationMoments}` : ''
+  ].filter(Boolean).join('\n');
   const now = new Date().toISOString();
   const booking = {
     id: dgInquiryNextId('BKG', bookings),
@@ -193,8 +230,8 @@ function dgInquiryConvertWithClient(inquiryId, client) {
     clientName: inquiry.fullName || client.fullName,
     clientEmail: client.email,
     serviceId: service ? service.id : '',
-    serviceName: inquiry.serviceType,
-    serviceType: inquiry.serviceType,
+    serviceName: bookingServiceType,
+    serviceType: bookingServiceType,
     packageId: '',
     packageName: 'To be confirmed',
     eventDate: inquiry.preferredDate || (inquiry.isDateFlexible ? 'Flexible' : ''),
@@ -208,7 +245,7 @@ function dgInquiryConvertWithClient(inquiryId, client) {
     preferredMeetingNotes: '',
     details: inquiry.message || inquiry.celebrationMoments || 'Inquiry converted for booking review.',
     eventDetails: inquiry.message || inquiry.celebrationMoments || 'Inquiry converted for booking review.',
-    notes: inquiry.celebrationMoments ? `Inquiry project detail: ${inquiry.celebrationMoments}` : '',
+    notes: originalInquiryDetails,
     status: 'Pending Review',
     meetingStatus: 'Not Scheduled',
     paymentStatus: 'Not Required Yet',
