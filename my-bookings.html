@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Projects | DG Film Co.</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="client-page projects-page">
+  <header class="site-header dashboard-header">
+    <a class="logo" href="client-dashboard.html">DG Film Co.</a>
+    <button class="menu-toggle" aria-label="Open navigation">Menu</button>
+    <nav class="nav-links">
+      <a href="client-dashboard.html">Dashboard</a>
+      <a href="client-works.html">Works / Portfolio</a>
+      <a href="book-service.html">Book a Service</a>
+      <a href="my-bookings.html" class="active">My Projects</a>
+      <a href="upload-payment.html">Payments</a>
+      <a href="client-profile.html">Profile</a>
+      <button type="button" class="nav-button" data-logout>Logout</button>
+    </nav>
+  </header>
+
+  <main class="page-main dashboard-main portal-shell">
+    <section class="dashboard-hero">
+      <p class="eyebrow">Client projects</p>
+      <h1>My Projects.</h1>
+      <p>Track your bookings, payment status, meetings, and final deliverables.</p>
+    </section>
+
+    <section class="section dashboard-section">
+      <div id="flashMessage" class="form-message" aria-live="polite"></div>
+      <div class="booking-toolbar">
+        <input type="search" id="bookingSearch" placeholder="Search by booking ID or service type" />
+        <select id="statusFilter">
+          <option value="All">All</option>
+          <option value="Pending Review">Pending Review</option>
+          <option value="Approved for Meeting">Approved for Meeting</option>
+          <option value="Meeting Scheduled">Meeting Scheduled</option>
+          <option value="Confirmed">Booking Confirmed</option>
+          <option value="Scheduled">Scheduled for Shoot</option>
+          <option value="On Shoot">In Production</option>
+          <option value="Editing">Editing</option>
+          <option value="Ready for Delivery">Ready for Delivery</option>
+          <option value="Completed">Completed</option>
+          <option value="Rejected">Rejected</option>
+          <option value="Cancelled">Cancelled</option>
+        </select>
+      </div>
+      <div id="bookingsList" class="booking-list"></div>
+    </section>
+  </main>
+
+  <footer class="footer"><p>&copy; 2026 DG Film Co.</p></footer>
+  <script src="js/data.js"></script>
+  <script src="js/loading.js"></script>
+  <script src="js/script.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/rbac.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/confirmations.js"></script>
+  <script src="js/bookings.js"></script>
+</body>
+</html>

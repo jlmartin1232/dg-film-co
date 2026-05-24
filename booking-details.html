@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Project Details | DG Film Co.</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="client-page project-details-page">
+  <header class="site-header dashboard-header">
+    <a class="logo" href="client-dashboard.html">DG Film Co.</a>
+    <button class="menu-toggle" aria-label="Open navigation">Menu</button>
+    <nav class="nav-links">
+      <a href="client-dashboard.html">Dashboard</a>
+      <a href="client-works.html">Works / Portfolio</a>
+      <a href="book-service.html">Book a Service</a>
+      <a href="my-bookings.html" class="active">My Projects</a>
+      <a href="upload-payment.html">Payments</a>
+      <a href="client-profile.html">Profile</a>
+      <button type="button" class="nav-button" data-logout>Logout</button>
+    </nav>
+  </header>
+
+  <main class="page-main dashboard-main portal-shell">
+    <section class="dashboard-hero">
+      <p class="eyebrow">Project record</p>
+      <h1>Project Details.</h1>
+      <p>Review your booking details, meeting schedule, payment status, production updates, and final files.</p>
+    </section>
+
+    <section class="section dashboard-section">
+      <div id="flashMessage" class="form-message" aria-live="polite"></div>
+      <article id="bookingDetails" class="details-panel"></article>
+    </section>
+  </main>
+
+  <footer class="footer"><p>&copy; 2026 DG Film Co.</p></footer>
+  <script src="js/data.js"></script>
+  <script src="js/loading.js"></script>
+  <script src="js/script.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/rbac.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/confirmations.js"></script>
+  <script src="js/bookings.js"></script>
+</body>
+</html>

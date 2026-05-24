@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Payment Verification | DG Film Co.</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="admin-page admin-payments-page">
+  <header class="site-header dashboard-header">
+    <a class="logo" href="admin-dashboard.html">DG Film Co.</a>
+    <button class="menu-toggle" aria-label="Open navigation">Menu</button>
+    <nav class="nav-links">
+      <a href="admin-dashboard.html">Admin Dashboard</a>
+      <a href="manage-bookings.html">Manage Bookings</a>
+      <a href="manage-inquiries.html">Inquiries</a>
+      <a href="payment-verification.html" class="active">Payment Verification</a>
+      <a href="manage-users.html">Manage Users</a>
+      <a href="manage-services.html">Manage Services</a>
+      <a href="manage-pricing.html">Manage Pricing</a>
+      <a href="reports.html">Reports</a>
+      <button type="button" class="nav-button" data-logout>Logout</button>
+    </nav>
+  </header>
+
+  <main class="page-main dashboard-main">
+    <section class="dashboard-hero">
+      <p class="eyebrow">ADMIN PAYMENTS</p>
+      <h1>Payment Verification</h1>
+      <p>Review submitted receipts, confirm payments, and update invoice balances.</p>
+    </section>
+
+    <section class="dashboard-grid portal-stats admin-payment-summary-grid" aria-label="Payment review summary">
+      <article class="dashboard-card admin-payment-stat"><span>Pending Review</span><strong id="pendingPaymentCount">0</strong></article>
+      <article class="dashboard-card admin-payment-stat"><span>Verified Payments</span><strong id="verifiedPaymentCount">0</strong></article>
+      <article class="dashboard-card admin-payment-stat"><span>Rejected Payments</span><strong id="rejectedPaymentCount">0</strong></article>
+      <article class="dashboard-card admin-payment-stat"><span>Total Collected</span><strong id="totalCollectedAmount">PHP 0.00</strong></article>
+      <article class="dashboard-card admin-payment-stat"><span>Outstanding Balance</span><strong id="outstandingBalanceAmount">PHP 0.00</strong></article>
+    </section>
+
+    <section class="section dashboard-section admin-payments-section" aria-label="Payment receipts">
+      <div id="adminMessage" class="form-message" aria-live="polite"></div>
+      <div class="admin-payments-toolbar">
+        <div class="admin-payments-search">
+          <label for="paymentSearch">Search payments</label>
+          <input type="search" id="paymentSearch" placeholder="Search payment, booking, client, reference" />
+        </div>
+        <div class="admin-payments-filters">
+          <select id="paymentStatusFilter" aria-label="Filter by payment status">
+            <option value="All">All payment statuses</option>
+            <option value="Pending Verification">Pending Verification</option>
+            <option value="Verified">Verified</option>
+            <option value="Rejected">Rejected</option>
+            <option value="Needs Resubmission">Needs Resubmission</option>
+          </select>
+          <select id="paymentTypeFilter" aria-label="Filter by payment type">
+            <option value="All">All payment types</option>
+            <option value="Down Payment">Down Payment</option>
+            <option value="Balance Payment">Balance Payment</option>
+          </select>
+        </div>
+      </div>
+      <div class="admin-payment-review-list" id="paymentsReviewList"></div>
+    </section>
+  </main>
+
+  <footer class="footer"><p>&copy; 2026 DG Film Co.</p></footer>
+  <script src="js/data.js"></script>
+  <script src="js/loading.js"></script>
+  <script src="js/script.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/rbac.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/confirmations.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>
+

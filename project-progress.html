@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Project Progress | DG Film Co.</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="staff-page">
+  <header class="site-header dashboard-header">
+    <a class="logo" href="staff-dashboard.html">DG Film Co.</a>
+    <button class="menu-toggle" aria-label="Open navigation">Menu</button>
+    <nav class="nav-links">
+      <a href="staff-dashboard.html">Staff Dashboard</a>
+      <a href="assigned-projects.html" class="active">Assigned Projects</a>
+      <a href="admin-dashboard.html" data-admin-only style="display: none;">Admin Dashboard</a>
+      <a href="manage-bookings.html" data-admin-only style="display: none;">Manage Bookings</a>
+      <button type="button" class="nav-button" data-logout>Logout</button>
+    </nav>
+  </header>
+
+  <main class="page-main dashboard-main">
+    <section class="dashboard-hero">
+      <p class="eyebrow">Production workflow</p>
+      <h1>Project progress.</h1>
+      <p>Update the project one color-coded phase at a time and leave production notes for the client and admin.</p>
+    </section>
+
+    <section class="section dashboard-section">
+      <div id="staffMessage" class="form-message" aria-live="polite"></div>
+      <article id="projectProgressPanel" class="details-panel"></article>
+    </section>
+  </main>
+
+  <footer class="footer"><p>&copy; 2026 DG Film Co.</p></footer>
+  <script src="js/data.js"></script>
+  <script src="js/loading.js"></script>
+  <script src="js/script.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/rbac.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/confirmations.js"></script>
+  <script src="js/staff.js"></script>
+</body>
+</html>

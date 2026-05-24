@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register | DG Film Co.</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="auth-page">
+  <div class="auth-wrapper">
+    <header class="auth-topbar">
+      <a class="logo" href="index.html">DG Film Co.</a>
+    </header>
+
+    <main class="auth-shell auth-slider-card register-active" data-auth-slider>
+      <section class="auth-forms-track" aria-label="Account forms">
+        <article class="auth-card auth-slide-form auth-login-form">
+          <p class="eyebrow">Account Access</p>
+          <h2>Welcome back.</h2>
+          <p class="auth-copy">Log in to manage bookings, payments, meetings, and delivered files.</p>
+
+          <form class="auth-form" id="loginForm" novalidate>
+            <div id="loginMessage" class="form-message" aria-live="polite"></div>
+            <label class="auth-field" for="loginEmail">Email address
+              <input id="loginEmail" type="email" name="email" placeholder="Enter your Email" autocomplete="email" />
+            </label>
+            <label class="auth-field" for="loginPassword">Password
+              <input id="loginPassword" type="password" name="password" placeholder="Enter your password" autocomplete="current-password" />
+            </label>
+            <button type="submit" class="btn primary full">Log in</button>
+          </form>
+        </article>
+
+        <article class="auth-card auth-slide-form auth-register-form">
+          <p class="eyebrow">Client Account</p>
+          <h2>Create your account.</h2>
+          <p class="auth-copy">Set up your DG Film Co. client portal for booking requests and project updates.</p>
+
+          <form class="auth-form register-form" id="registerForm" novalidate>
+            <div id="registerMessage" class="form-message" aria-live="polite"></div>
+            <div class="register-fields">
+              <label class="auth-field" for="registerName">Full Name
+                <input id="registerName" type="text" name="fullName" placeholder="Enter your full name" autocomplete="name" />
+              </label>
+              <label class="auth-field" for="registerEmail">Email Address
+                <input id="registerEmail" type="email" name="email" placeholder="Enter your Email" autocomplete="email" />
+              </label>
+              <label class="auth-field" for="registerPhone">Mobile Number
+                <input id="registerPhone" type="tel" name="mobileNumber" placeholder="09XXXXXXXXX" autocomplete="tel" />
+              </label>
+              <label class="auth-field" for="registerPassword">Password
+                <input id="registerPassword" type="password" name="password" placeholder="Create a password" autocomplete="new-password" />
+              </label>
+              <label class="auth-field register-confirm-field" for="registerConfirmPassword">Confirm Password
+                <input id="registerConfirmPassword" type="password" name="confirmPassword" placeholder="Re-enter your password" autocomplete="new-password" />
+              </label>
+            </div>
+            <button type="submit" class="btn primary full">Create Account</button>
+          </form>
+        </article>
+      </section>
+
+      <section class="auth-toggle-panel" aria-label="Account information">
+        <div class="auth-toggle-copy auth-toggle-register">
+          <p class="eyebrow">New Client</p>
+          <h2>Start a new project.</h2>
+          <p>Create your client account to submit a booking request and follow production updates.</p>
+          <button class="btn ghost" type="button" data-auth-switch="register">Create Account</button>
+        </div>
+        <div class="auth-toggle-copy auth-toggle-login">
+          <p class="eyebrow">Returning Client</p>
+          <h2>Welcome back.</h2>
+          <p>Return to your portal to review bookings, payments, and delivered files.</p>
+          <button class="btn ghost" type="button" data-auth-switch="login">Log in</button>
+        </div>
+      </section>
+    </main>
+
+    <footer class="auth-footer"><p>&copy; 2026 DG Film Co.</p></footer>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/auth.js"></script>
+</body>
+</html>

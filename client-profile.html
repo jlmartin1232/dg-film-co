@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Profile | DG Film Co.</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="client-page profile-page">
+  <header class="site-header dashboard-header">
+    <a class="logo" href="client-dashboard.html">DG Film Co.</a>
+    <button class="menu-toggle" aria-label="Open navigation">Menu</button>
+    <nav class="nav-links">
+      <a href="client-dashboard.html">Dashboard</a>
+      <a href="client-works.html">Works / Portfolio</a>
+      <a href="book-service.html">Book a Service</a>
+      <a href="my-bookings.html">My Projects</a>
+      <a href="upload-payment.html">Payments</a>
+      <a href="client-profile.html" class="active">Profile</a>
+      <button type="button" class="nav-button" data-logout>Logout</button>
+    </nav>
+  </header>
+
+  <main class="page-main dashboard-main portal-shell">
+    <section class="dashboard-hero profile-hero">
+      <p class="eyebrow">CLIENT PROFILE</p>
+      <h1>Profile and preferences.</h1>
+      <p>Keep your contact details and project preferences updated for future bookings.</p>
+    </section>
+
+    <section class="section profile-section">
+      <div class="profile-layout">
+        <div class="profile-main-column">
+          <div id="profileMessage" class="form-message" aria-live="polite"></div>
+
+          <form class="profile-form" id="clientProfileForm" novalidate>
+            <article class="profile-form-card">
+              <div class="profile-card-heading">
+                <p class="eyebrow">Account</p>
+                <h2>Account Information</h2>
+              </div>
+              <div class="form-grid">
+                <label>Full Name
+                  <input type="text" name="fullName" placeholder="Your full name" />
+                  <span class="field-error" data-error-for="fullName"></span>
+                </label>
+
+                <label>Email
+                  <input type="email" name="email" placeholder="you@example.com" />
+                  <span class="field-error" data-error-for="email"></span>
+                </label>
+
+                <label>Contact Number <span class="optional">Optional</span>
+                  <input type="tel" name="contactNumber" placeholder="09XXXXXXXXX or +639XXXXXXXXX" />
+                  <span class="field-error" data-error-for="contactNumber"></span>
+                </label>
+              </div>
+            </article>
+
+            <article class="profile-form-card">
+              <div class="profile-card-heading">
+                <p class="eyebrow">Preferences</p>
+                <h2>Project Preferences</h2>
+              </div>
+              <div class="form-grid">
+                <label>Preferred Service Type
+                  <select name="preferredServiceType">
+                    <option value="">Choose a service preference</option>
+                    <option value="Wedding Photo/Video">Wedding Photo/Video</option>
+                    <option value="Debut / Birthday Coverage">Debut / Birthday Coverage</option>
+                    <option value="Corporate / Commercial Video">Corporate / Commercial Video</option>
+                    <option value="Restaurant / Food Promo">Restaurant / Food Promo</option>
+                    <option value="Nightlife / Club Events">Nightlife / Club Events</option>
+                    <option value="Graduation / Event Coverage">Graduation / Event Coverage</option>
+                    <option value="Pageant / Event Coverage">Pageant / Event Coverage</option>
+                    <option value="Music Video / Creative Film">Music Video / Creative Film</option>
+                    <option value="Product / Brand Event">Product / Brand Event</option>
+                  </select>
+                </label>
+
+                <label>Preferred Visual Style
+                  <select name="preferredVisualStyle">
+                    <option value="">Choose a style</option>
+                    <option value="Cinematic and emotional">Cinematic and emotional</option>
+                    <option value="Elegant and classy">Elegant and classy</option>
+                    <option value="Warm and natural">Warm and natural</option>
+                    <option value="Dark and moody">Dark and moody</option>
+                    <option value="Fast-paced social media style">Fast-paced social media style</option>
+                    <option value="Clean commercial style">Clean commercial style</option>
+                    <option value="Documentary style">Documentary style</option>
+                  </select>
+                </label>
+
+                <label>Social Media Link <span class="optional">Optional</span>
+                  <input type="url" name="socialMediaLink" placeholder="https://instagram.com/yourprofile" />
+                  <span class="field-error" data-error-for="socialMediaLink"></span>
+                </label>
+              </div>
+            </article>
+
+            <article class="profile-form-card">
+              <div class="profile-card-heading">
+                <p class="eyebrow">Production Notes</p>
+                <h2>Notes and Delivery Preferences</h2>
+              </div>
+              <label>Notes / Preferences <span class="optional">Optional</span>
+                <textarea name="preferenceNotes" rows="5" placeholder="Share venue details, reference styles, delivery preferences, preferred schedule, or anything DG Film Co. should remember."></textarea>
+              </label>
+            </article>
+
+            <div class="profile-action-row">
+              <button class="btn primary" type="submit">Save Profile</button>
+              <a class="btn ghost" href="client-dashboard.html">Back to Dashboard</a>
+            </div>
+          </form>
+        </div>
+
+        <aside class="profile-sidebar" aria-label="Profile guidance">
+          <article class="profile-summary-card" aria-label="Profile summary">
+            <div class="profile-avatar" id="profileInitials">DG</div>
+            <div>
+              <p class="eyebrow">Client Account</p>
+              <h2 id="profileSummaryName">Client Name</h2>
+              <p id="profileSummaryEmail">Email not set</p>
+              <div class="profile-summary-meta">
+                <span id="profileSummaryService">Preferred service not set</span>
+                <span id="profileSummaryContact">Contact number not set</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="profile-helper-card">
+            <p class="eyebrow">Helpful Reminders</p>
+            <h2>Profile tips</h2>
+            <ul>
+              <li>Keep your contact number updated so we can reach you for meeting, payment, and project updates.</li>
+              <li>Choose a preferred service to speed up future bookings.</li>
+              <li>Add visual references or delivery preferences for the production team.</li>
+            </ul>
+          </article>
+
+          <article class="profile-helper-card accent-card">
+            <p class="eyebrow">Future Projects</p>
+            <h2>Saved for future bookings</h2>
+            <p>These details may be used to pre-fill future booking forms and help DG Film Co. understand your preferred style.</p>
+          </article>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer"><p>&copy; 2026 DG Film Co.</p></footer>
+  <script src="js/data.js"></script>
+  <script src="js/loading.js"></script>
+  <script src="js/script.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/rbac.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/bookings.js"></script>
+</body>
+</html>

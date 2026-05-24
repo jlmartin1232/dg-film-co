@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Assigned Projects | DG Film Co.</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="staff-page">
+  <header class="site-header dashboard-header">
+    <a class="logo" href="staff-dashboard.html">DG Film Co.</a>
+    <button class="menu-toggle" aria-label="Open navigation">Menu</button>
+    <nav class="nav-links">
+      <a href="staff-dashboard.html">Staff Dashboard</a>
+      <a href="assigned-projects.html" class="active">Assigned Projects</a>
+      <a href="admin-dashboard.html" data-admin-only style="display: none;">Admin Dashboard</a>
+      <a href="manage-bookings.html" data-admin-only style="display: none;">Manage Bookings</a>
+      <button type="button" class="nav-button" data-logout>Logout</button>
+    </nav>
+  </header>
+
+  <main class="page-main dashboard-main">
+    <section class="dashboard-hero">
+      <p class="eyebrow" id="assignedProjectsEyebrow">Staff projects</p>
+      <h1 id="assignedProjectsTitle">Assigned projects.</h1>
+      <p id="assignedProjectsCopy">Review assigned work and open each project to update production progress.</p>
+    </section>
+
+    <section class="section dashboard-section">
+      <div class="status-legend" aria-label="Production status color guide">
+        <span class="badge badge-scheduled">Scheduled</span>
+        <span class="badge badge-on-shoot">On Shoot</span>
+        <span class="badge badge-editing">Editing</span>
+        <span class="badge badge-ready">Ready for Delivery</span>
+        <span class="badge badge-completed">Completed</span>
+      </div>
+      <div class="admin-toolbar compact">
+        <input type="search" id="projectSearch" placeholder="Search ID, client, service, or location" />
+        <select id="projectStatusFilter">
+          <option value="All">All statuses</option>
+          <option value="Scheduled">Scheduled</option>
+          <option value="On Shoot">On Shoot</option>
+          <option value="Editing">Editing</option>
+          <option value="Ready for Delivery">Ready for Delivery</option>
+          <option value="Completed">Completed</option>
+        </select>
+      </div>
+      <p class="table-helper" id="projectStatusLabel">Showing: All assigned projects</p>
+
+      <div class="table-wrap">
+        <table class="dashboard-table admin-table">
+          <thead>
+            <tr>
+              <th>Booking ID</th>
+              <th>Client Name</th>
+              <th>Service Type</th>
+              <th>Package</th>
+              <th>Event Date</th>
+              <th>Event Time</th>
+              <th>Location</th>
+              <th>Status</th>
+              <th>Assigned Staff</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="assignedProjectsBody"><tr><td colspan="10">No assigned projects yet.</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer"><p>&copy; 2026 DG Film Co.</p></footer>
+  <script src="js/data.js"></script>
+  <script src="js/loading.js"></script>
+  <script src="js/script.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/rbac.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/staff.js"></script>
+</body>
+</html>

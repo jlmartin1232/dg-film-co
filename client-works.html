@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Works / Portfolio | DG Film Co.</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <script src="js/data.js"></script>
+  <script src="js/loading.js"></script>
+  <script src="js/rbac.js"></script>
+  <script>
+    if (!DGRbac.requireRoles(['client'])) {
+      document.documentElement.classList.add('auth-redirecting');
+    }
+  </script>
+</head>
+<body class="client-page client-works-page">
+  <header class="site-header dashboard-header">
+    <a class="logo" href="client-dashboard.html">DG Film Co.</a>
+    <button class="menu-toggle" aria-label="Open navigation">Menu</button>
+    <nav class="nav-links">
+      <a href="client-dashboard.html">Dashboard</a>
+      <a href="client-works.html" class="active">Works / Portfolio</a>
+      <a href="book-service.html">Book a Service</a>
+      <a href="my-bookings.html">My Projects</a>
+      <a href="upload-payment.html">Payments</a>
+      <a href="client-profile.html">Profile</a>
+      <button type="button" class="nav-button" data-logout>Logout</button>
+    </nav>
+  </header>
+
+  <main class="page-main dashboard-main portal-shell">
+    <section class="dashboard-hero">
+      <p class="eyebrow">Client portfolio</p>
+      <h1>Works / Portfolio.</h1>
+      <p>Browse recent DG Film Co. projects and find a style that fits your event or brand.</p>
+      <div class="hero-actions">
+        <a class="btn primary" href="book-service.html">Book a Service</a>
+        <button class="btn ghost" type="button" data-watch-preview="assets/videos/hero/dg-film-co-showreel.mp4" data-work-title="DG Film Co. Showreel" data-work-poster="assets/images/portfolio/showreel-poster.jpg">Watch Showreel</button>
+      </div>
+    </section>
+
+    <section class="section">
+      <div id="portfolioHeroReel"></div>
+    </section>
+
+    <section class="section portfolio-categories-section">
+      <div class="section-heading">
+        <p class="eyebrow">Explore by style</p>
+        <h2>Browse by category.</h2>
+      </div>
+      <div class="portfolio-category-grid" id="portfolioCategoryGrid"></div>
+    </section>
+
+    <section class="section">
+      <div class="filter-bar">
+        <button class="filter-btn active" data-portfolio-filter="all">All</button>
+        <button class="filter-btn" data-portfolio-filter="wedding">Wedding Films</button>
+        <button class="filter-btn" data-portfolio-filter="debut">Debut</button>
+        <button class="filter-btn" data-portfolio-filter="corporate">Corporate Events</button>
+        <button class="filter-btn" data-portfolio-filter="creative">Creative Film / Documentary</button>
+        <button class="filter-btn" data-portfolio-filter="restaurant">Restaurant / Food Promo</button>
+        <button class="filter-btn" data-portfolio-filter="nightlife">Nightlife / Club Events</button>
+        <button class="filter-btn" data-portfolio-filter="product">Product Shoots</button>
+        <button class="filter-btn" data-portfolio-filter="graduation">Graduation Shoots</button>
+      </div>
+
+      <div class="portfolio-work-grid" id="portfolioWorksGrid"></div>
+    </section>
+  </main>
+
+  <div class="portfolio-modal" id="portfolioPreviewModal" aria-hidden="true">
+    <div class="portfolio-modal-panel" role="dialog" aria-modal="true" aria-label="Portfolio video preview">
+      <button class="modal-close" type="button" data-close-modal>Close</button>
+      <h2 data-modal-title>DG Film Co. Preview</h2>
+      <video controls playsinline preload="metadata"></video>
+      <p class="muted-text">Watch the selected project preview, then explore more work or begin a booking request.</p>
+    </div>
+  </div>
+
+  <footer class="footer"><p>&copy; 2026 DG Film Co.</p></footer>
+  <script src="js/script.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/portfolio.js"></script>
+</body>
+</html>

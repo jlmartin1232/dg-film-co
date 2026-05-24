@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Booking Details | DG Film Co.</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="admin-page">
+  <header class="site-header dashboard-header">
+    <a class="logo" href="admin-dashboard.html">DG Film Co.</a>
+    <button class="menu-toggle" aria-label="Open navigation">Menu</button>
+    <nav class="nav-links">
+      <a href="admin-dashboard.html">Admin Dashboard</a>
+      <a href="manage-bookings.html" class="active">Manage Bookings</a>
+      <a href="manage-inquiries.html">Inquiries</a>
+      <a href="payment-verification.html">Payment Verification</a>
+      <a href="manage-users.html">Manage Users</a>
+      <a href="manage-services.html">Manage Services</a>
+      <a href="manage-pricing.html">Manage Pricing</a>
+      <a href="reports.html">Reports</a>
+      <button type="button" class="nav-button" data-logout>Logout</button>
+    </nav>
+  </header>
+
+  <main class="page-main dashboard-main">
+    <section class="dashboard-hero">
+      <p class="eyebrow">Admin record</p>
+      <h1>Booking details.</h1>
+      <p>Review full booking information, payment metadata, staff assignment, and history.</p>
+    </section>
+
+    <section class="section dashboard-section">
+      <div id="adminMessage" class="form-message" aria-live="polite"></div>
+      <article id="adminBookingDetails" class="details-panel"></article>
+    </section>
+  </main>
+
+  <footer class="footer"><p>&copy; 2026 DG Film Co.</p></footer>
+  <script src="js/data.js"></script>
+  <script src="js/loading.js"></script>
+  <script src="js/script.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/rbac.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/confirmations.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>
+

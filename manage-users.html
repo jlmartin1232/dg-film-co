@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manage Users | DG Film Co.</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="admin-page admin-users-page">
+  <header class="site-header dashboard-header">
+    <a class="logo" href="admin-dashboard.html">DG Film Co.</a>
+    <button class="menu-toggle" aria-label="Open navigation">Menu</button>
+    <nav class="nav-links">
+      <a href="admin-dashboard.html">Admin Dashboard</a>
+      <a href="manage-bookings.html">Manage Bookings</a>
+      <a href="manage-inquiries.html">Inquiries</a>
+      <a href="payment-verification.html">Payment Verification</a>
+      <a href="manage-users.html" class="active">Manage Users</a>
+      <a href="manage-services.html">Manage Services</a>
+      <a href="manage-pricing.html">Manage Pricing</a>
+      <a href="reports.html">Reports</a>
+      <button type="button" class="nav-button" data-logout>Logout</button>
+    </nav>
+  </header>
+
+  <main class="page-main dashboard-main">
+    <section class="dashboard-hero">
+      <p class="eyebrow">ADMIN USERS</p>
+      <h1>Manage Users</h1>
+      <p>Create accounts, update roles, reset passwords, and manage user access.</p>
+    </section>
+
+    <section class="dashboard-grid portal-stats admin-user-summary-grid" aria-label="User account summary">
+      <article class="dashboard-card admin-user-stat"><span>Total Users</span><strong id="userTotalCount">0</strong></article>
+      <article class="dashboard-card admin-user-stat"><span>Admins</span><strong id="adminUserCount">0</strong></article>
+      <article class="dashboard-card admin-user-stat"><span>Staff</span><strong id="staffUserCount">0</strong></article>
+      <article class="dashboard-card admin-user-stat"><span>Clients</span><strong id="clientUserCount">0</strong></article>
+      <article class="dashboard-card admin-user-stat"><span>Disabled Accounts</span><strong id="disabledUserCount">0</strong></article>
+    </section>
+
+    <section class="section dashboard-section admin-users-section" aria-label="Users list">
+      <div id="manageMessage" class="form-message" aria-live="polite"></div>
+      <div class="admin-users-toolbar">
+        <div class="admin-users-search">
+          <label for="userSearch">Search users</label>
+          <input id="userSearch" type="search" placeholder="Search name, email, or role" />
+        </div>
+        <div class="admin-users-filters">
+          <select id="roleFilter" aria-label="Filter by role">
+            <option value="All">All roles</option>
+            <option value="admin">Admin</option>
+            <option value="staff">Staff</option>
+            <option value="client">Client</option>
+          </select>
+          <select id="userStatusFilter" aria-label="Filter by status">
+            <option value="All">All statuses</option>
+            <option value="Active">Active</option>
+            <option value="Disabled">Disabled</option>
+          </select>
+          <button class="btn primary" type="button" id="addUserBtn">+ Add User</button>
+        </div>
+      </div>
+      <div class="table-wrap admin-users-table-wrap">
+        <table class="dashboard-table admin-table manage-users-table">
+          <thead>
+            <tr>
+              <th>User ID</th>
+              <th>Full Name</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Date Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="usersBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <div class="admin-crud-modal" id="userFormPanel" hidden>
+    <div class="admin-crud-modal-panel" role="dialog" aria-modal="true" aria-labelledby="userFormTitle">
+      <div class="admin-crud-modal-header">
+        <div>
+          <p class="eyebrow">Account access</p>
+          <h2 id="userFormTitle">Add User</h2>
+          <p class="muted-text">Create or update access for DG Film Co. users.</p>
+        </div>
+        <button class="modal-close" type="button" id="cancelUserFormBtn" aria-label="Close">&times;</button>
+      </div>
+      <form class="admin-crud-modal-form" id="userForm" novalidate>
+        <input type="hidden" name="editingId" />
+        <div class="admin-crud-modal-body">
+          <div class="form-grid">
+            <label>Full Name<input name="fullName" type="text" /><span class="field-error" data-error-for="fullName"></span></label>
+            <label>Email<input name="email" type="email" /><span class="field-error" data-error-for="email"></span></label>
+            <label>Role<select name="role"><option value="">Choose role</option><option value="client">Client</option><option value="staff">Staff</option><option value="admin">Admin</option></select><span class="field-error" data-error-for="role"></span></label>
+            <label>Status<select name="status"><option value="Active">Active</option><option value="Disabled">Disabled</option></select><span class="field-error" data-error-for="status"></span></label>
+            <label>Temporary Password<input name="password" type="password" /><span class="field-error" data-error-for="password"></span></label>
+            <label>Confirm Temporary Password<input name="confirmPassword" type="password" /><span class="field-error" data-error-for="confirmPassword"></span></label>
+          </div>
+          <p class="password-field-help" id="userPasswordHelp">Set a temporary password for the new account.</p>
+          <p class="role-warning" id="adminRoleWarning" hidden>Admin accounts can manage bookings, payments, users, pricing, reports, and system settings.</p>
+          <label class="check-row"><input type="checkbox" name="adminConfirm" /><span>I understand this account will have access based on the selected role.</span></label>
+          <span class="field-error field-error-alone" data-error-for="adminConfirm"></span>
+        </div>
+        <div class="admin-crud-modal-actions">
+          <button class="btn ghost" type="button" id="cancelUserFormBtnSecondary">Cancel</button>
+          <button class="btn primary" type="submit">Save User</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="admin-crud-modal" id="resetPasswordPanel" hidden>
+    <div class="admin-crud-modal-panel admin-crud-modal-small" role="dialog" aria-modal="true" aria-labelledby="resetPasswordTitle">
+      <div class="admin-crud-modal-header">
+        <div>
+          <p class="eyebrow">Account access</p>
+          <h2 id="resetPasswordTitle">Reset Password</h2>
+          <p class="muted-text" id="resetPasswordUserMeta"></p>
+          <p class="muted-text">Set a temporary password and share it securely with the user.</p>
+        </div>
+        <button class="modal-close" type="button" id="cancelResetPasswordBtn" aria-label="Close">&times;</button>
+      </div>
+      <form class="admin-crud-modal-form" id="resetPasswordForm" novalidate>
+        <input type="hidden" name="resetUserId" />
+        <div class="admin-crud-modal-body">
+          <div class="form-grid">
+            <label>New Temporary Password<input name="newPassword" type="password" /><span class="field-error" data-error-for="newPassword"></span></label>
+            <label>Confirm Temporary Password<input name="confirmNewPassword" type="password" /><span class="field-error" data-error-for="confirmNewPassword"></span></label>
+          </div>
+        </div>
+        <div class="admin-crud-modal-actions">
+          <button class="btn ghost" type="button" id="cancelResetPasswordBtnSecondary">Cancel</button>
+          <button class="btn primary" type="submit">Update Password</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <footer class="footer"><p>&copy; 2026 DG Film Co.</p></footer>
+  <script src="js/data.js"></script>
+  <script src="js/loading.js"></script>
+  <script src="js/script.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/rbac.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/confirmations.js"></script>
+  <script src="js/manage.js"></script>
+</body>
+</html>

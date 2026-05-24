@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Book a Service | DG Film Co.</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="client-page booking-request-page">
+  <header class="site-header dashboard-header">
+    <a class="logo" href="index.html">DG Film Co.</a>
+    <button class="menu-toggle" aria-label="Open navigation">Menu</button>
+    <nav class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="work.html">Work</a>
+      <a href="services.html">Services</a>
+      <a href="pricing.html">Pricing</a>
+      <a href="about.html">About</a>
+      <a href="book-service.html" class="active">Book a Service</a>
+    </nav>
+  </header>
+
+  <main class="page-main dashboard-main portal-shell">
+    <section class="dashboard-hero booking-request-hero">
+      <p class="eyebrow">Start Your Inquiry</p>
+      <h1>Tell us about your project.</h1>
+      <p>Share your event details, preferred coverage, and creative direction. We&rsquo;ll review your inquiry and get back to you.</p>
+    </section>
+
+    <section class="section form-section booking-focus-section">
+      <div class="booking-layout">
+        <form class="inquiry-form booking-form booking-form-card" id="bookingForm" novalidate>
+          <div class="profile-card-heading">
+            <p class="eyebrow">Project Request</p>
+            <h2>Project details</h2>
+            <p class="muted-text">Choose a service and package that fit your coverage needs. We can refine the final details together.</p>
+          </div>
+          <div class="form-grid">
+            <label>Service Type
+              <select name="serviceType"></select>
+              <span class="field-error" data-error-for="serviceType"></span>
+            </label>
+
+            <label>Package
+              <select name="packageName"></select>
+              <span class="field-error" data-error-for="packageName"></span>
+            </label>
+
+            <label>Event Date
+              <input type="date" name="eventDate" />
+              <span class="field-error" data-error-for="eventDate"></span>
+            </label>
+
+            <label>Event Time
+              <input type="time" name="eventTime" />
+              <span class="field-error" data-error-for="eventTime"></span>
+            </label>
+
+            <label>Event Location
+              <input type="text" name="location" placeholder="Venue, city, or full location" />
+              <span class="field-error" data-error-for="location"></span>
+            </label>
+
+            <label>Budget Range
+              <select name="budget">
+                <option value="">Choose a budget range</option>
+                <option value="Below PHP 15,000">Below PHP 15,000</option>
+                <option value="PHP 15,000 - PHP 30,000">PHP 15,000 - PHP 30,000</option>
+                <option value="PHP 30,000 - PHP 60,000">PHP 30,000 - PHP 60,000</option>
+                <option value="PHP 60,000+">PHP 60,000+</option>
+              </select>
+              <span class="field-error" data-error-for="budget"></span>
+            </label>
+
+            <label>Contact Number
+              <input type="tel" name="contactNumber" placeholder="09XXXXXXXXX or +639XXXXXXXXX" />
+              <span class="field-error" data-error-for="contactNumber"></span>
+            </label>
+          </div>
+
+          <label>Event Details
+            <textarea name="details" rows="5" placeholder="Describe the event, audience, mood, schedule, and final outputs you have in mind."></textarea>
+            <span class="field-error" data-error-for="details"></span>
+          </label>
+
+          <label>Additional Notes <span class="optional">Optional</span>
+            <textarea name="notes" rows="4" placeholder="Any extra requests, visual references, or reminders."></textarea>
+          </label>
+
+          <div class="profile-card-heading">
+            <p class="eyebrow">Meeting Preference</p>
+            <p class="muted-text">Let us know how you prefer to talk through the project. We&rsquo;ll confirm the final schedule based on availability.</p>
+          </div>
+          <div class="form-grid meeting-preference-fields">
+            <label>Preferred Meeting Mode <span class="optional">Optional</span>
+              <select name="preferredMeetingMode">
+                <option value="">No preference</option>
+                <option value="Online Meeting">Online Meeting</option>
+                <option value="In-Person Meeting">In-Person Meeting</option>
+                <option value="Phone Call">Phone Call</option>
+              </select>
+            </label>
+            <label>Preferred Meeting Notes <span class="optional">Optional</span>
+              <textarea name="preferredMeetingNotes" rows="3" placeholder="Example: Prefer online meeting after 5 PM, or in-person near Paranaque."></textarea>
+            </label>
+          </div>
+
+          <label class="check-row">
+            <input type="checkbox" name="terms" />
+            <span>I understand that my inquiry is subject to schedule review and confirmation by DG Film Co.</span>
+          </label>
+          <span class="field-error field-error-alone" data-error-for="terms"></span>
+
+          <button type="submit" class="btn primary">Submit Inquiry</button>
+        </form>
+
+        <aside class="booking-sidebar" aria-label="Booking guidance">
+          <article class="package-preview booking-helper-card" id="packagePreview">
+            <span>Selected package summary</span>
+            <p>Choose a package that matches your coverage needs. We can adjust the final details after we review your inquiry.</p>
+          </article>
+
+          <article class="booking-helper-card">
+            <p class="eyebrow">What Happens Next</p>
+            <h2>What happens next</h2>
+            <ol class="booking-process-list">
+              <li>Send your inquiry</li>
+              <li>We review your event details</li>
+              <li>We talk through the coverage plan</li>
+              <li>You confirm the package and schedule</li>
+              <li>We produce and deliver your final files</li>
+            </ol>
+          </article>
+
+          <article class="booking-helper-card portfolio-cta-card">
+            <p class="eyebrow">Need Inspiration?</p>
+            <h2>Need inspiration first?</h2>
+            <p>Browse DG Film Co. works before choosing your service and package.</p>
+            <a class="btn ghost" href="work.html">View Portfolio</a>
+          </article>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer"><p>&copy; 2026 DG Film Co.</p></footer>
+  <script src="js/data.js"></script>
+  <script src="js/loading.js"></script>
+  <script src="js/script.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/rbac.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/bookings.js"></script>
+</body>
+</html>

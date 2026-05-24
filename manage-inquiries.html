@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manage Inquiries | DG Film Co.</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="admin-page admin-inquiries-page">
+  <header class="site-header dashboard-header">
+    <a class="logo" href="admin-dashboard.html">DG Film Co.</a>
+    <button class="menu-toggle" aria-label="Open navigation">Menu</button>
+    <nav class="nav-links">
+      <a href="admin-dashboard.html">Admin Dashboard</a>
+      <a href="manage-bookings.html">Manage Bookings</a>
+      <a href="manage-inquiries.html" class="active">Inquiries</a>
+      <a href="payment-verification.html">Payment Verification</a>
+      <a href="manage-users.html">Manage Users</a>
+      <a href="manage-services.html">Manage Services</a>
+      <a href="manage-pricing.html">Manage Pricing</a>
+      <a href="reports.html">Reports</a>
+      <button type="button" class="nav-button" data-logout>Logout</button>
+    </nav>
+  </header>
+
+  <main class="page-main dashboard-main">
+    <section class="dashboard-hero">
+      <p class="eyebrow">ADMIN INQUIRIES</p>
+      <h1>Manage Client Leads</h1>
+      <p>Review, contact, and qualify inquiries before converting ready projects into bookings.</p>
+    </section>
+
+    <section class="dashboard-grid portal-stats admin-inquiry-summary-grid" aria-label="Lead summary">
+        <article class="dashboard-card admin-inquiry-stat">
+          <span>New Leads</span>
+          <strong id="newLeadCount">0</strong>
+        </article>
+        <article class="dashboard-card admin-inquiry-stat">
+          <span>Contacted</span>
+          <strong id="contactedLeadCount">0</strong>
+        </article>
+        <article class="dashboard-card admin-inquiry-stat">
+          <span>Ready to Book</span>
+          <strong id="readyLeadCount">0</strong>
+        </article>
+        <article class="dashboard-card admin-inquiry-stat">
+          <span>Converted</span>
+          <strong id="convertedLeadCount">0</strong>
+        </article>
+        <article class="dashboard-card admin-inquiry-stat">
+          <span>Archived</span>
+          <strong id="archivedLeadCount">0</strong>
+        </article>
+    </section>
+
+    <section class="section dashboard-section admin-inquiries-section" aria-label="Client leads">
+      <div id="inquiryAdminMessage" class="form-message" aria-live="polite"></div>
+
+      <div class="admin-inquiries-toolbar">
+        <div class="admin-inquiries-search">
+          <label for="inquirySearch">Search Leads</label>
+          <input type="search" id="inquirySearch" placeholder="Search lead, client, phone, service, or location" />
+        </div>
+        <div class="admin-inquiries-filters">
+          <select id="inquiryStatusFilter" aria-label="Filter by lead status">
+            <option value="All">All statuses</option>
+            <option value="New">New</option>
+            <option value="Contacted">Contacted</option>
+            <option value="Ready to Book">Ready to Book</option>
+            <option value="Converted">Converted</option>
+            <option value="Archived">Archived</option>
+          </select>
+          <select id="inquiryServiceFilter" aria-label="Filter by service">
+            <option value="All">All services</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="dashboard-table admin-table inquiry-table">
+          <thead>
+            <tr>
+              <th>Inquiry ID</th>
+              <th>Lead / Email</th>
+              <th>Phone</th>
+              <th>Service</th>
+              <th>Preferred Date</th>
+              <th>Location</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="inquiriesBody"><tr><td colspan="8">Inquiries will appear here.</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- Lead details modal -->
+  <div class="modal-overlay lead-modal-overlay" id="leadDetailsModal" hidden>
+    <div class="modal-panel lead-modal-panel" role="dialog" aria-modal="true" aria-labelledby="leadDetailsTitle">
+      <div class="modal-header lead-modal-header">
+        <h2 id="leadDetailsTitle">Lead Details</h2>
+        <button class="modal-close" type="button" data-close-lead-modal aria-label="Close">&#x2715;</button>
+      </div>
+      <div class="modal-body lead-modal-body" id="leadDetailsContent"></div>
+      <div class="modal-footer lead-modal-actions" id="leadDetailsActions"></div>
+    </div>
+  </div>
+
+  <!-- Lead account setup modal -->
+  <div class="modal-overlay lead-modal-overlay" id="leadAccountModal" hidden>
+    <div class="modal-panel lead-account-panel" role="dialog" aria-modal="true" aria-labelledby="leadAccountTitle">
+      <div class="modal-header lead-modal-header">
+        <h2 id="leadAccountTitle">Create Client Account</h2>
+        <button class="modal-close" type="button" data-close-lead-account aria-label="Close">&#x2715;</button>
+      </div>
+      <div class="lead-account-body">
+        <p>No existing client account found for this email. Create a temporary account to convert this lead into a booking.</p>
+        <div id="leadAccountMessage" class="form-message" aria-live="polite"></div>
+        <form id="leadAccountForm" class="lead-account-form" novalidate>
+          <input type="hidden" name="inquiryId" />
+          <div class="auth-field">
+            <label for="leadEmail">Email Address</label>
+            <input type="email" id="leadEmail" name="email" autocomplete="email" />
+            <span class="field-error" data-error-for="email"></span>
+          </div>
+          <div class="auth-field">
+            <label for="leadPassword">Temporary Password</label>
+            <input type="password" id="leadPassword" name="temporaryPassword" autocomplete="new-password" />
+            <span class="field-error" data-error-for="temporaryPassword"></span>
+          </div>
+          <div class="auth-field">
+            <label for="leadConfirmPassword">Confirm Temporary Password</label>
+            <input type="password" id="leadConfirmPassword" name="confirmTemporaryPassword" autocomplete="new-password" />
+            <span class="field-error" data-error-for="confirmTemporaryPassword"></span>
+          </div>
+          <div class="form-actions lead-modal-actions">
+            <button type="submit" class="btn primary">Create Account &amp; Convert</button>
+            <button type="button" class="btn ghost" data-close-lead-account>Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer"><p>&copy; 2026 DG Film Co.</p></footer>
+  <script src="js/data.js"></script>
+  <script src="js/loading.js"></script>
+  <script src="js/script.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/rbac.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/confirmations.js"></script>
+  <script src="js/inquiries.js"></script>
+</body>
+</html>

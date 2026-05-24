@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Staff Dashboard | DG Film Co.</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="staff-page">
+  <header class="site-header dashboard-header">
+    <a class="logo" href="staff-dashboard.html">DG Film Co.</a>
+    <button class="menu-toggle" aria-label="Open navigation">Menu</button>
+    <nav class="nav-links">
+      <a href="staff-dashboard.html" class="active">Staff Dashboard</a>
+      <a href="assigned-projects.html">Assigned Projects</a>
+      <a href="admin-dashboard.html" data-admin-only style="display: none;">Admin Dashboard</a>
+      <a href="manage-bookings.html" data-admin-only style="display: none;">Manage Bookings</a>
+      <button type="button" class="nav-button" data-logout>Logout</button>
+    </nav>
+  </header>
+
+  <main class="page-main dashboard-main">
+    <section class="dashboard-hero">
+      <p class="eyebrow" id="staffDashboardEyebrow">Staff dashboard</p>
+      <h1><span id="staffDashboardTitle">Staff Dashboard</span></h1>
+      <p>Welcome, <span id="welcomeName">Staff</span>.</p>
+      <p id="staffDashboardCopy">Review assignments, shoots, editing tasks, and completed productions.</p>
+    </section>
+
+    <div class="workflow-strip" aria-label="Staff workflow">
+      <span class="badge-scheduled">Scheduled</span>
+      <span class="badge-on-shoot">On Shoot</span>
+      <span class="badge-editing">Editing</span>
+      <span class="badge-ready">Ready for Delivery</span>
+      <span class="badge-completed">Completed</span>
+    </div>
+
+    <section class="dashboard-grid">
+      <a class="dashboard-card staff-dashboard-shortcut" href="assigned-projects.html"><span id="staffProjectsLabel">Assigned Projects</span><strong id="assignedProjects">0</strong></a>
+      <a class="dashboard-card staff-dashboard-shortcut" href="assigned-projects.html?status=Scheduled"><span>Scheduled Shoots</span><strong id="scheduledShoots">0</strong></a>
+      <a class="dashboard-card staff-dashboard-shortcut" href="assigned-projects.html?status=On%20Shoot"><span>On Shoot</span><strong id="onShootProjects">0</strong></a>
+      <a class="dashboard-card staff-dashboard-shortcut" href="assigned-projects.html?status=Editing"><span>Editing Tasks</span><strong id="editingTasks">0</strong></a>
+      <a class="dashboard-card staff-dashboard-shortcut" href="assigned-projects.html?status=Ready%20for%20Delivery"><span>Ready for Delivery</span><strong id="readyForDelivery">0</strong></a>
+      <a class="dashboard-card staff-dashboard-shortcut" href="assigned-projects.html?status=Completed"><span>Completed Projects</span><strong id="completedProjects">0</strong></a>
+    </section>
+
+    <section class="section dashboard-section">
+      <div class="section-heading split">
+        <div>
+          <p class="eyebrow" id="staffToolsEyebrow">Staff tools</p>
+          <h2 id="staffToolsTitle">Open assigned projects and update production progress.</h2>
+        </div>
+      </div>
+      <div class="quick-actions">
+        <a href="assigned-projects.html" class="action-tile">Assigned Projects</a>
+        <a href="assigned-projects.html" class="action-tile">Update Progress</a>
+      </div>
+    </section>
+
+    <section class="section dashboard-section">
+      <div class="section-heading">
+        <p class="eyebrow" id="recentProjectsEyebrow">Assigned projects</p>
+        <h2 id="recentProjectsTitle">Recent assigned projects.</h2>
+      </div>
+      <div class="table-wrap">
+        <table class="dashboard-table">
+          <thead><tr><th>Booking ID</th><th>Client Name</th><th>Service Type</th><th>Event Date</th><th>Status</th><th>Payment Status</th><th>Action</th></tr></thead>
+          <tbody id="recentAssignedProjectsBody"><tr><td colspan="7">No assigned projects yet.</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer"><p>&copy; 2026 DG Film Co.</p></footer>
+  <script src="js/data.js"></script>
+  <script src="js/loading.js"></script>
+  <script src="js/script.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/rbac.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/staff.js"></script>
+</body>
+</html>

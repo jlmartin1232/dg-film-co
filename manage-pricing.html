@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manage Pricing | DG Film Co.</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="admin-page admin-pricing-page">
+  <header class="site-header dashboard-header">
+    <a class="logo" href="admin-dashboard.html">DG Film Co.</a>
+    <button class="menu-toggle" aria-label="Open navigation">Menu</button>
+    <nav class="nav-links">
+      <a href="admin-dashboard.html">Admin Dashboard</a>
+      <a href="manage-bookings.html">Manage Bookings</a>
+      <a href="manage-inquiries.html">Inquiries</a>
+      <a href="payment-verification.html">Payment Verification</a>
+      <a href="manage-users.html">Manage Users</a>
+      <a href="manage-services.html">Manage Services</a>
+      <a href="manage-pricing.html" class="active">Manage Pricing</a>
+      <a href="reports.html">Reports</a>
+      <button type="button" class="nav-button" data-logout>Logout</button>
+    </nav>
+  </header>
+
+  <main class="page-main dashboard-main">
+    <section class="dashboard-hero">
+      <p class="eyebrow">ADMIN PRICING</p>
+      <h1>Manage Pricing</h1>
+      <p>Review and update service packages, prices, and deliverables.</p>
+    </section>
+
+    <section class="dashboard-grid portal-stats admin-pricing-summary-grid" aria-label="Package catalog summary">
+      <article class="dashboard-card admin-pricing-stat"><span>Total Packages</span><strong id="totalPackagesCount">0</strong></article>
+      <article class="dashboard-card admin-pricing-stat"><span>Active Packages</span><strong id="activePackagesCount">0</strong></article>
+      <article class="dashboard-card admin-pricing-stat"><span>Inactive Packages</span><strong id="inactivePackagesCount">0</strong></article>
+      <article class="dashboard-card admin-pricing-stat"><span>Services with Packages</span><strong id="servicesWithPackagesCount">0</strong></article>
+    </section>
+
+    <section class="section dashboard-section admin-pricing-section" aria-label="Packages by service">
+      <div id="manageMessage" class="form-message" aria-live="polite"></div>
+      <div class="admin-pricing-toolbar">
+        <div class="admin-pricing-search">
+          <label for="pricingSearch">Search packages</label>
+          <input id="pricingSearch" type="search" placeholder="Search service or package" />
+        </div>
+        <div class="admin-pricing-filters">
+          <select id="pricingServiceFilter" aria-label="Filter by service"></select>
+          <select id="pricingStatusFilter" aria-label="Filter by status">
+            <option value="All">All statuses</option>
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+          </select>
+          <button class="btn primary" type="button" id="addPackageBtn">+ Add Package</button>
+        </div>
+      </div>
+      <div id="pricingList" class="admin-pricing-accordion"></div>
+    </section>
+  </main>
+
+  <div class="admin-crud-modal" id="pricingFormPanel" hidden>
+    <div class="admin-crud-modal-panel" role="dialog" aria-modal="true" aria-labelledby="pricingFormTitle">
+      <div class="admin-crud-modal-header">
+        <div>
+          <p class="eyebrow">Package catalog</p>
+          <h2 id="pricingFormTitle">Add Package</h2>
+          <p class="muted-text">Create and update package rates, inclusions, and deliverables.</p>
+        </div>
+        <button class="modal-close" type="button" id="cancelPricingFormBtn" aria-label="Close">&times;</button>
+      </div>
+      <form class="admin-crud-modal-form" id="pricingForm" novalidate>
+        <input type="hidden" name="editingId" />
+        <div class="admin-crud-modal-body">
+          <div class="form-grid">
+            <label>Service<select name="serviceId"></select><span class="field-error" data-error-for="serviceId"></span></label>
+            <label>Package Name<input name="packageName" /><span class="field-error" data-error-for="packageName"></span></label>
+            <label>Price<input name="price" type="number" min="0" /><span class="field-error" data-error-for="price"></span></label>
+            <label>Status<select name="status"><option value="Active">Active</option><option value="Inactive">Inactive</option></select><span class="field-error" data-error-for="status"></span></label>
+          </div>
+          <label>Deliverables<textarea name="deliverables" rows="5" placeholder="One deliverable per line"></textarea><span class="field-error" data-error-for="deliverables"></span></label>
+        </div>
+        <div class="admin-crud-modal-actions">
+          <button class="btn ghost" type="button" id="cancelPricingFormBtnSecondary">Cancel</button>
+          <button class="btn primary" type="submit" id="pricingFormSubmitBtn">Save Package</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="admin-crud-modal" id="packageDetailsPanel" hidden>
+    <div class="admin-crud-modal-panel admin-crud-modal-small" role="dialog" aria-modal="true" aria-labelledby="packageDetailsTitle">
+      <div class="admin-crud-modal-header">
+        <div>
+          <p class="eyebrow">Package details</p>
+          <h2 id="packageDetailsTitle">Package Details</h2>
+          <p class="muted-text" id="packageDetailsService"></p>
+        </div>
+        <button class="modal-close" type="button" id="cancelPackageDetailsBtn" aria-label="Close">&times;</button>
+      </div>
+      <div class="admin-crud-modal-body" id="packageDetailsContent"></div>
+      <div class="admin-crud-modal-actions">
+        <button class="btn ghost" type="button" id="cancelPackageDetailsBtnSecondary">Cancel</button>
+        <button class="btn primary" type="button" id="editPackageDetailsBtn">Edit Package</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer"><p>&copy; 2026 DG Film Co.</p></footer>
+  <script src="js/data.js"></script>
+  <script src="js/loading.js"></script>
+  <script src="js/script.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/rbac.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/confirmations.js"></script>
+  <script src="js/manage.js"></script>
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manage Services | DG Film Co.</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="admin-page admin-services-page">
+  <header class="site-header dashboard-header">
+    <a class="logo" href="admin-dashboard.html">DG Film Co.</a>
+    <button class="menu-toggle" aria-label="Open navigation">Menu</button>
+    <nav class="nav-links">
+      <a href="admin-dashboard.html">Admin Dashboard</a>
+      <a href="manage-bookings.html">Manage Bookings</a>
+      <a href="manage-inquiries.html">Inquiries</a>
+      <a href="payment-verification.html">Payment Verification</a>
+      <a href="manage-users.html">Manage Users</a>
+      <a href="manage-services.html" class="active">Manage Services</a>
+      <a href="manage-pricing.html">Manage Pricing</a>
+      <a href="reports.html">Reports</a>
+      <button type="button" class="nav-button" data-logout>Logout</button>
+    </nav>
+  </header>
+
+  <main class="page-main dashboard-main">
+    <section class="dashboard-hero">
+      <p class="eyebrow">ADMIN SERVICES</p>
+      <h1>Manage Services</h1>
+      <p>Review, update, activate, or deactivate services offered by DG Film Co.</p>
+    </section>
+
+    <section class="dashboard-grid portal-stats admin-service-summary-grid" aria-label="Service catalog summary">
+      <article class="dashboard-card admin-service-stat"><span>Total Services</span><strong id="totalServicesCount">0</strong></article>
+      <article class="dashboard-card admin-service-stat"><span>Active Services</span><strong id="activeServicesCount">0</strong></article>
+      <article class="dashboard-card admin-service-stat"><span>Inactive Services</span><strong id="inactiveServicesCount">0</strong></article>
+      <article class="dashboard-card admin-service-stat"><span>Event Services</span><strong id="eventServicesCount">0</strong></article>
+      <article class="dashboard-card admin-service-stat"><span>Commercial Services</span><strong id="commercialServicesCount">0</strong></article>
+    </section>
+
+    <section class="section dashboard-section admin-services-section" aria-label="Services list">
+      <div id="manageMessage" class="form-message" aria-live="polite"></div>
+      <p class="service-admin-note">Inactive services are hidden from new bookings but remain available in existing records.</p>
+      <div class="admin-services-toolbar">
+        <div class="admin-services-search">
+          <label for="serviceSearch">Search services</label>
+          <input id="serviceSearch" type="search" placeholder="Search service or category" />
+        </div>
+        <div class="admin-services-filters">
+          <select id="serviceCategoryFilter" aria-label="Filter by category">
+            <option value="All">All categories</option>
+            <option value="Event">Event</option>
+            <option value="Commercial">Commercial</option>
+            <option value="Creative">Creative</option>
+            <option value="Food / Hospitality">Food / Hospitality</option>
+            <option value="Brand">Brand</option>
+          </select>
+          <select id="serviceStatusFilter" aria-label="Filter by status">
+            <option value="All">All statuses</option>
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+          </select>
+          <button class="btn primary" type="button" id="addServiceBtn">+ Add Service</button>
+        </div>
+      </div>
+      <div class="table-wrap admin-services-table-wrap">
+        <table class="dashboard-table admin-table manage-services-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Service Name</th>
+              <th>Category</th>
+              <th>Starting Price</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="servicesBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <div class="admin-crud-modal" id="serviceFormPanel" hidden>
+    <div class="admin-crud-modal-panel" role="dialog" aria-modal="true" aria-labelledby="serviceFormTitle">
+      <div class="admin-crud-modal-header">
+        <div>
+          <p class="eyebrow">Service catalog</p>
+          <h2 id="serviceFormTitle">Add Service</h2>
+          <p class="muted-text">Update the services offered by DG Film Co.</p>
+        </div>
+        <button class="modal-close" type="button" id="cancelServiceFormBtn" aria-label="Close">&times;</button>
+      </div>
+      <form class="admin-crud-modal-form" id="serviceForm" novalidate>
+        <input type="hidden" name="editingId" />
+        <div class="admin-crud-modal-body">
+          <div class="form-grid">
+            <label>Service Name<input name="serviceName" /><span class="field-error" data-error-for="serviceName"></span></label>
+            <label>Category<select name="category"><option value="">Choose category</option><option value="Event">Event</option><option value="Commercial">Commercial</option><option value="Creative">Creative</option><option value="Food / Hospitality">Food / Hospitality</option><option value="Brand">Brand</option></select><span class="field-error" data-error-for="category"></span></label>
+            <label>Starting Price<input name="startingPrice" type="number" min="0" /><span class="field-error" data-error-for="startingPrice"></span></label>
+            <label>Status<select name="status"><option value="Active">Active</option><option value="Inactive">Inactive</option></select><span class="field-error" data-error-for="status"></span></label>
+          </div>
+          <label>Description<textarea name="description" rows="4"></textarea><span class="field-error" data-error-for="description"></span></label>
+        </div>
+        <div class="admin-crud-modal-actions">
+          <button class="btn ghost" type="button" id="cancelServiceFormBtnSecondary">Cancel</button>
+          <button class="btn primary" type="submit" id="serviceFormSubmitBtn">Save Service</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <footer class="footer"><p>&copy; 2026 DG Film Co.</p></footer>
+  <script src="js/data.js"></script>
+  <script src="js/loading.js"></script>
+  <script src="js/script.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/rbac.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/confirmations.js"></script>
+  <script src="js/manage.js"></script>
+</body>
+</html>

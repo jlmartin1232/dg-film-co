@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reports | DG Film Co.</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="admin-page admin-reports-page">
+  <header class="site-header dashboard-header">
+    <a class="logo" href="admin-dashboard.html">DG Film Co.</a>
+    <button class="menu-toggle" aria-label="Open navigation">Menu</button>
+    <nav class="nav-links">
+      <a href="admin-dashboard.html">Admin Dashboard</a>
+      <a href="manage-bookings.html">Manage Bookings</a>
+      <a href="manage-inquiries.html">Inquiries</a>
+      <a href="payment-verification.html">Payment Verification</a>
+      <a href="manage-users.html">Manage Users</a>
+      <a href="manage-services.html">Manage Services</a>
+      <a href="manage-pricing.html">Manage Pricing</a>
+      <a href="reports.html" class="active">Reports</a>
+      <button type="button" class="nav-button" data-logout>Logout</button>
+    </nav>
+  </header>
+
+  <main class="page-main dashboard-main">
+    <section class="dashboard-hero">
+      <p class="eyebrow">ADMIN REPORTS</p>
+      <h1>Reports</h1>
+      <p>Review bookings, payments, services, and staff performance in one place.</p>
+    </section>
+
+    <section class="section dashboard-section admin-reports-section" aria-label="Reports dashboard">
+      <div id="reportMessage" class="form-message" aria-live="polite"></div>
+      <div class="report-filter-toolbar">
+        <label>Date From<input id="reportFrom" type="date" /></label>
+        <label>Date To<input id="reportTo" type="date" /></label>
+        <label>Service<select id="reportService"></select></label>
+        <label>Status
+          <select id="reportStatus">
+            <option value="All">All statuses</option>
+            <option value="Pending Review">Pending Review</option>
+            <option value="Approved for Meeting">Approved for Meeting</option>
+            <option value="Meeting Scheduled">Meeting Scheduled</option>
+            <option value="Confirmed">Confirmed</option>
+            <option value="Scheduled">Scheduled</option>
+            <option value="On Shoot">On Shoot</option>
+            <option value="Editing">Editing</option>
+            <option value="Ready for Delivery">Ready for Delivery</option>
+            <option value="Completed">Completed</option>
+            <option value="Rejected">Rejected</option>
+            <option value="Cancelled">Cancelled</option>
+          </select>
+        </label>
+        <div class="report-toolbar-actions">
+          <button id="applyReports" class="btn primary" type="button">Apply Filters</button>
+          <button id="resetReports" class="btn ghost" type="button">Reset Filters</button>
+          <button id="exportReports" class="btn ghost" type="button">Export CSV</button>
+          <button id="printReports" class="btn ghost" type="button">Print Report</button>
+        </div>
+      </div>
+
+      <nav class="report-tabs" role="tablist" aria-label="Report sections">
+        <button class="report-tab active" type="button" role="tab" data-report-tab="overview" aria-controls="report-overview" aria-selected="true">Overview</button>
+        <button class="report-tab" type="button" role="tab" data-report-tab="bookings" aria-controls="report-bookings" aria-selected="false">Bookings</button>
+        <button class="report-tab" type="button" role="tab" data-report-tab="payments" aria-controls="report-payments" aria-selected="false">Payments</button>
+        <button class="report-tab" type="button" role="tab" data-report-tab="services" aria-controls="report-services" aria-selected="false">Services</button>
+        <button class="report-tab" type="button" role="tab" data-report-tab="staff" aria-controls="report-staff" aria-selected="false">Staff</button>
+      </nav>
+
+      <section class="report-tab-panel active" id="report-overview" role="tabpanel" data-report-panel="overview">
+        <div id="reportCards" class="dashboard-grid report-overview-grid"></div>
+      </section>
+
+      <section class="report-tab-panel" id="report-bookings" role="tabpanel" data-report-panel="bookings" hidden>
+        <div class="report-grid">
+          <article class="table-wrap report-card-table">
+            <h3>Bookings by Status</h3>
+            <table class="dashboard-table"><tbody id="bookingsByStatus"></tbody></table>
+          </article>
+          <article class="table-wrap report-card-table">
+            <h3>Bookings by Service</h3>
+            <table class="dashboard-table"><tbody id="bookingsByService"></tbody></table>
+          </article>
+          <article class="table-wrap report-card-table">
+            <h3>Monthly Booking Count</h3>
+            <table class="dashboard-table"><tbody id="monthlyBookings"></tbody></table>
+          </article>
+          <article class="table-wrap report-card-table">
+            <h3>Cancelled Bookings</h3>
+            <table class="dashboard-table"><tbody id="cancelledBookings"></tbody></table>
+          </article>
+        </div>
+      </section>
+
+      <section class="report-tab-panel" id="report-payments" role="tabpanel" data-report-panel="payments" hidden>
+        <div class="report-grid report-grid-single">
+          <article class="table-wrap report-card-table">
+            <h3>Payment Summary</h3>
+            <table class="dashboard-table"><tbody id="paymentSummary"></tbody></table>
+          </article>
+        </div>
+      </section>
+
+      <section class="report-tab-panel" id="report-services" role="tabpanel" data-report-panel="services" hidden>
+        <div class="report-grid">
+          <article class="table-wrap report-card-table">
+            <h3>Top Services</h3>
+            <table class="dashboard-table"><tbody id="topServices"></tbody></table>
+          </article>
+          <article class="table-wrap report-card-table">
+            <h3>Bookings by Service</h3>
+            <table class="dashboard-table"><tbody id="serviceBookingsByService"></tbody></table>
+          </article>
+          <article class="table-wrap report-card-table report-card-wide">
+            <h3>Service Performance Summary</h3>
+            <table class="dashboard-table"><tbody id="servicePerformance"></tbody></table>
+          </article>
+        </div>
+      </section>
+
+      <section class="report-tab-panel" id="report-staff" role="tabpanel" data-report-panel="staff" hidden>
+        <div class="report-grid report-grid-single">
+          <article class="table-wrap report-card-table">
+            <h3>Staff Workload</h3>
+            <table class="dashboard-table">
+              <thead>
+                <tr><th>Staff</th><th>Assigned Projects</th><th>Completed Projects</th><th>Active Projects</th></tr>
+              </thead>
+              <tbody id="staffWorkload"></tbody>
+            </table>
+          </article>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <footer class="footer"><p>&copy; 2026 DG Film Co.</p></footer>
+  <script src="js/data.js"></script>
+  <script src="js/loading.js"></script>
+  <script src="js/script.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/rbac.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/manage.js"></script>
+</body>
+</html>

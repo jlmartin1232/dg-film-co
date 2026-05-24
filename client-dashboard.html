@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Client Dashboard | DG Film Co.</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="client-page client-dashboard-page minimalist-dashboard">
+  <header class="site-header dashboard-header">
+    <a class="logo" href="client-dashboard.html">DG Film Co.</a>
+    <button class="menu-toggle" aria-label="Open navigation">Menu</button>
+    <nav class="nav-links">
+      <a href="client-dashboard.html" class="active">Dashboard</a>
+      <a href="client-works.html">Works / Portfolio</a>
+      <a href="book-service.html">Book a Service</a>
+      <a href="my-bookings.html">My Projects</a>
+      <a href="upload-payment.html">Payments</a>
+      <a href="client-profile.html">Profile</a>
+      <button type="button" class="nav-button" data-logout>Logout</button>
+    </nav>
+  </header>
+
+  <main class="page-main dashboard-main portal-shell">
+    <section class="dashboard-hero dashboard-hero-compact">
+      <p class="eyebrow">CLIENT PORTAL</p>
+      <h1>Welcome back, <span id="welcomeName">Client</span>.</h1>
+      <p>Review your bookings, payment updates, meetings, and delivered files.</p>
+    </section>
+
+    <section class="section dashboard-section compact-dashboard-section dashboard-project-overview">
+      <div class="section-heading">
+        <p class="eyebrow">Current Status</p>
+        <h2>Project Overview</h2>
+      </div>
+      <div id="activeProjectHighlight"></div>
+    </section>
+
+    <section class="dashboard-grid portal-stats compact-stats client-dashboard-stats" aria-label="Project summary">
+      <article class="dashboard-card"><span>Total Projects</span><strong id="totalProjects">0</strong></article>
+      <article class="dashboard-card"><span>Pending Requests</span><strong id="pendingRequests">0</strong></article>
+      <article class="dashboard-card"><span>Active Projects</span><strong id="activeProjects">0</strong></article>
+      <article class="dashboard-card"><span>Payments Due</span><strong id="paymentsPending">0</strong></article>
+      <article class="dashboard-card"><span>Deliverables Ready</span><strong id="finalOutputsReady">0</strong></article>
+    </section>
+
+    <section class="section dashboard-section compact-dashboard-section dashboard-actions-section">
+      <div class="section-heading">
+        <p class="eyebrow">Portal Shortcuts</p>
+        <h2>Next Actions</h2>
+      </div>
+      <div class="quick-actions compact-actions" id="clientQuickActions"></div>
+    </section>
+
+    <section class="section dashboard-section compact-dashboard-section dashboard-featured-section">
+      <div class="section-heading split">
+        <div>
+          <p class="eyebrow">Selected Works</p>
+          <h2>Featured Works</h2>
+          <p class="muted-text">A quick look at recent DG Film Co. styles.</p>
+        </div>
+        <a class="btn ghost small" href="client-works.html">View Portfolio</a>
+      </div>
+      <div class="dashboard-work-cta-grid">
+        <article class="dashboard-work-cta" data-href="client-works.html" tabindex="0" aria-label="View Wedding Photo/Video portfolio">
+          <div class="dashboard-work-preview">
+            <video muted loop playsinline preload="metadata" data-dashboard-preview>
+              <source src="assets/videos/portfolio/wedding-preview.mp4" type="video/mp4" />
+            </video>
+            <span class="dashboard-work-placeholder">Wedding</span>
+          </div>
+          <div>
+            <p class="eyebrow">Wedding</p>
+            <h3>Wedding Photo/Video</h3>
+          </div>
+          <a class="btn ghost small" href="client-works.html">View Portfolio</a>
+        </article>
+
+        <article class="dashboard-work-cta" data-href="client-works.html" tabindex="0" aria-label="View Debut / Birthday Coverage portfolio">
+          <div class="dashboard-work-preview">
+            <video muted loop playsinline preload="metadata" data-dashboard-preview>
+              <source src="assets/videos/portfolio/debut-preview.mp4" type="video/mp4" />
+            </video>
+            <span class="dashboard-work-placeholder">Debut / Birthday</span>
+          </div>
+          <div>
+            <p class="eyebrow">Celebrations</p>
+            <h3>Debut / Birthday Coverage</h3>
+          </div>
+          <a class="btn ghost small" href="client-works.html">View Portfolio</a>
+        </article>
+
+        <article class="dashboard-work-cta" data-href="client-works.html" tabindex="0" aria-label="View Corporate / Commercial Video portfolio">
+          <div class="dashboard-work-preview">
+            <video muted loop playsinline preload="metadata" data-dashboard-preview>
+              <source src="assets/videos/portfolio/corporate-preview.mp4" type="video/mp4" />
+            </video>
+            <span class="dashboard-work-placeholder">Commercial</span>
+          </div>
+          <div>
+            <p class="eyebrow">Commercial</p>
+            <h3>Corporate / Commercial Video</h3>
+          </div>
+          <a class="btn ghost small" href="client-works.html">View Portfolio</a>
+        </article>
+      </div>
+    </section>
+
+    <section class="section dashboard-section compact-dashboard-section dashboard-activity-section">
+      <div class="section-heading split">
+        <div>
+          <p class="eyebrow">Updates</p>
+          <h2>Recent Activity</h2>
+        </div>
+        <a class="btn ghost small" href="my-bookings.html">View My Projects</a>
+      </div>
+      <div id="clientRecentActivity"></div>
+    </section>
+  </main>
+
+  <footer class="footer"><p>&copy; 2026 DG Film Co.</p></footer>
+  <script src="js/data.js"></script>
+  <script src="js/loading.js"></script>
+  <script src="js/script.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/rbac.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/bookings.js"></script>
+</body>
+</html>

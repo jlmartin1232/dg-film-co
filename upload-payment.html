@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Upload Payment | DG Film Co.</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="client-page payment-page">
+  <header class="site-header dashboard-header">
+    <a class="logo" href="client-dashboard.html">DG Film Co.</a>
+    <button class="menu-toggle" aria-label="Open navigation">Menu</button>
+    <nav class="nav-links">
+      <a href="client-dashboard.html">Dashboard</a>
+      <a href="client-works.html">Works / Portfolio</a>
+      <a href="book-service.html">Book a Service</a>
+      <a href="my-bookings.html">My Projects</a>
+      <a href="upload-payment.html" class="active">Payments</a>
+      <a href="client-profile.html">Profile</a>
+      <button type="button" class="nav-button" data-logout>Logout</button>
+    </nav>
+  </header>
+
+  <main class="page-main dashboard-main portal-shell payment-upload-page">
+    <section class="dashboard-hero payment-upload-hero">
+      <p class="eyebrow">PAYMENT UPLOAD</p>
+      <h1 id="paymentUploadTitle">Submit Payment Receipt</h1>
+      <p id="paymentUploadCopy">Upload your payment receipt for review. Make sure the amount and reference number match your invoice.</p>
+    </section>
+
+    <section class="section payment-upload-section">
+      <div class="payment-upload-layout">
+        <div class="payment-upload-main">
+          <div id="flashMessage" class="form-message" aria-live="polite"></div>
+
+          <div class="empty-state payment-empty-state" id="paymentEmptyState" hidden>
+            <strong>No payment action is available right now.</strong>
+            <span>Payment upload becomes available once your booking is confirmed and an invoice is prepared.</span>
+            <a class="btn primary" href="my-bookings.html">View My Projects</a>
+          </div>
+
+          <form class="inquiry-form booking-form payment-form-card" id="paymentForm" novalidate>
+            <div class="profile-card-heading">
+              <p class="eyebrow">Receipt Submission</p>
+              <h2>Payment details</h2>
+            </div>
+            <div class="payment-form-grid">
+              <div class="payment-form-column">
+                <label>Booking
+                  <select name="bookingId"></select>
+                  <span class="field-error" data-error-for="bookingId"></span>
+                </label>
+
+                <label>Payment Type
+                  <select name="paymentType">
+                    <option value="">Choose a payment type</option>
+                    <option value="downpayment">Down Payment</option>
+                    <option value="full">Full Payment</option>
+                    <option value="custom">Custom Payment</option>
+                    <option value="balance">Balance Payment</option>
+                  </select>
+                  <span class="field-error" data-error-for="paymentType"></span>
+                </label>
+
+                <label>Payment Reference Number
+                  <input type="text" name="referenceNumber" placeholder="GCash, bank, or receipt reference" />
+                  <span class="field-error" data-error-for="referenceNumber"></span>
+                </label>
+
+                <label>Amount to Pay
+                  <input type="number" name="amountPaid" min="1" step="0.01" placeholder="0.00" />
+                  <small class="field-hint" id="amountHint"></small>
+                  <small class="field-hint" id="remainingBalanceHint"></small>
+                  <span class="field-error" data-error-for="amountPaid"></span>
+                </label>
+              </div>
+
+              <div class="payment-form-column">
+                <label>Payment Date
+                  <input type="date" name="paymentDate" />
+                  <span class="field-error" data-error-for="paymentDate"></span>
+                </label>
+
+                <label class="receipt-upload-field">Receipt File
+                  <input type="file" name="receiptFile" accept=".jpg,.jpeg,.png,.pdf" />
+                  <small class="field-hint field-helper">Accepted files: JPG, PNG, or PDF up to 5MB.</small>
+                  <small class="field-hint" id="receiptPreviewHint"></small>
+                  <span class="field-error" data-error-for="receiptFile"></span>
+                </label>
+                <div class="receipt-selected-card" id="receiptSelectedCard" hidden></div>
+
+                <label>Notes <span class="optional">Optional</span>
+                  <textarea name="notes" rows="4" placeholder="Add any notes that may help us review your receipt."></textarea>
+                </label>
+              </div>
+            </div>
+
+            <div class="payment-action-row">
+              <button type="submit" class="btn primary">Submit Receipt</button>
+              <a class="btn ghost" href="upload-payment.html">Back to Payments</a>
+            </div>
+          </form>
+        </div>
+
+        <aside class="payment-upload-sidebar" aria-label="Payment upload guidance">
+          <article class="billing-summary-card" id="billingSummaryCard" aria-live="polite">
+            <p class="eyebrow">Billing Summary</p>
+            <h2>Choose a booking to view required payment details.</h2>
+          </article>
+
+          <article class="payment-helper-card">
+            <p class="eyebrow">Receipt Guidance</p>
+            <h2>Before you submit</h2>
+            <p>Upload a clear copy of your receipt showing the amount and reference number for review.</p>
+          </article>
+
+          <article class="payment-helper-card">
+            <p class="eyebrow">Review Process</p>
+            <h2>What happens next?</h2>
+            <ol class="booking-process-list">
+              <li>DG Film Co. reviews your submitted receipt.</li>
+              <li>Your payment status will update after review.</li>
+              <li>If there is an issue, we may ask you to resubmit.</li>
+              <li>Final files are released once all balances are settled.</li>
+            </ol>
+          </article>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer"><p>&copy; 2026 DG Film Co.</p></footer>
+  <script src="js/data.js"></script>
+  <script src="js/loading.js"></script>
+  <script src="js/script.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/rbac.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/confirmations.js"></script>
+  <script src="js/bookings.js"></script>
+</body>
+</html>

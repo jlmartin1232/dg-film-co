@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manage Bookings | DG Film Co.</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="admin-page admin-bookings-page">
+  <header class="site-header dashboard-header">
+    <a class="logo" href="admin-dashboard.html">DG Film Co.</a>
+    <button class="menu-toggle" aria-label="Open navigation">Menu</button>
+    <nav class="nav-links">
+      <a href="admin-dashboard.html">Admin Dashboard</a>
+      <a href="manage-bookings.html" class="active">Manage Bookings</a>
+      <a href="manage-inquiries.html">Inquiries</a>
+      <a href="payment-verification.html">Payment Verification</a>
+      <a href="manage-users.html">Manage Users</a>
+      <a href="manage-services.html">Manage Services</a>
+      <a href="manage-pricing.html">Manage Pricing</a>
+      <a href="reports.html">Reports</a>
+      <button type="button" class="nav-button" data-logout>Logout</button>
+    </nav>
+  </header>
+
+  <main class="page-main dashboard-main">
+    <section class="dashboard-hero">
+      <p class="eyebrow">Admin management</p>
+      <h1>Manage bookings.</h1>
+      <p>Search, filter, approve, reject, assign staff, and schedule client projects.</p>
+    </section>
+
+    <section class="dashboard-grid portal-stats">
+      <article class="dashboard-card"><span>Pending Review</span><strong id="bookingPendingCount">0</strong></article>
+      <article class="dashboard-card"><span>Approved for Meeting</span><strong id="bookingApprovedCount">0</strong></article>
+      <article class="dashboard-card"><span>Awaiting Payment</span><strong id="bookingAwaitingPaymentCount">0</strong></article>
+      <article class="dashboard-card"><span>Active</span><strong id="bookingActiveCount">0</strong></article>
+      <article class="dashboard-card"><span>Completed</span><strong id="bookingCompletedCount">0</strong></article>
+    </section>
+
+    <section class="section dashboard-section">
+      <div id="adminMessage" class="form-message" aria-live="polite"></div>
+      <div class="admin-toolbar">
+        <input type="search" id="bookingSearch" placeholder="Search ID, client, service, or location" />
+        <select id="bookingStatusFilter">
+          <option value="All">All booking statuses</option>
+          <option value="Pending Review">Pending Review</option>
+          <option value="Approved for Meeting">Approved for Meeting</option>
+          <option value="Meeting Scheduled">Meeting Scheduled</option>
+          <option value="Confirmed">Confirmed</option>
+          <option value="Scheduled">Scheduled</option>
+          <option value="On Shoot">On Shoot</option>
+          <option value="Editing">Editing</option>
+          <option value="Ready for Delivery">Ready for Delivery</option>
+          <option value="Completed">Completed</option>
+          <option value="Rejected">Rejected</option>
+          <option value="Cancelled">Cancelled</option>
+        </select>
+        <select id="paymentStatusFilter">
+          <option value="All">All payment statuses</option>
+          <option value="Not Required Yet">Not Required Yet</option>
+          <option value="Awaiting Payment">Awaiting Payment</option>
+          <option value="Awaiting Down Payment">Awaiting Down Payment</option>
+          <option value="Pending Verification">Pending Verification</option>
+          <option value="Down Payment Pending Verification">Down Payment Pending Verification</option>
+          <option value="Verified">Verified</option>
+          <option value="Down Payment Verified">Down Payment Verified</option>
+          <option value="Rejected">Rejected</option>
+          <option value="Needs Resubmission">Needs Resubmission</option>
+        </select>
+        <button class="btn primary" type="button" id="openManualBooking">+ Manual Booking</button>
+      </div>
+
+      <div class="table-wrap">
+        <table class="dashboard-table admin-table manage-bookings-table">
+          <thead>
+            <tr>
+              <th>Booking ID</th>
+              <th>Client Name</th>
+              <th>Service Type</th>
+              <th>Package</th>
+              <th>Event Date</th>
+              <th>Source</th>
+              <th>Status</th>
+              <th>Meeting</th>
+              <th>Payment Status</th>
+              <th>Assigned Staff</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="manageBookingsBody"><tr><td colspan="11">Bookings will appear here.</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <div class="admin-modal" id="manualBookingModal" hidden>
+    <div class="admin-modal-panel manual-booking-modal" role="dialog" aria-modal="true" aria-labelledby="manualBookingTitle">
+      <form class="manual-booking-form" id="manualBookingForm" novalidate>
+        <div class="manual-modal-header">
+          <div>
+            <p class="eyebrow">Admin booking</p>
+            <h2 id="manualBookingTitle">Create Manual Booking</h2>
+            <p class="muted-text">Add a booking for a walk-in, phone, Messenger, or direct client.</p>
+          </div>
+          <button class="modal-close" type="button" data-close-manual-booking aria-label="Close">Close</button>
+        </div>
+
+        <div class="manual-modal-body">
+          <div class="manual-step-indicator" aria-label="Manual booking steps">
+            <span data-manual-step-indicator="1"><strong>1</strong> Client</span>
+            <span data-manual-step-indicator="2"><strong>2</strong> Booking</span>
+            <span data-manual-step-indicator="3"><strong>3</strong> Workflow</span>
+            <span data-manual-step-indicator="4"><strong>4</strong> Review</span>
+          </div>
+
+          <div class="manual-step-panels">
+            <section class="manual-step-panel manual-form-section" data-manual-step="1">
+              <h3>Client Information</h3>
+              <div class="form-grid">
+                <label>Full Name<input type="text" name="fullName" autocomplete="name" /><span class="field-error" data-error-for="fullName"></span></label>
+                <label>Email Address<input type="email" name="email" autocomplete="email" /><span class="field-error" data-error-for="email"></span></label>
+                <label>Contact Number<input type="tel" name="contactNumber" autocomplete="tel" /><span class="field-error" data-error-for="contactNumber"></span></label>
+                <label>Client Account Setup<select name="accountMode"><option value="create">Create new client account</option><option value="link">Link to existing client account</option></select><span class="field-error" data-error-for="accountMode"></span></label>
+                <label class="manual-password-field">Temporary Password<input type="password" name="temporaryPassword" autocomplete="new-password" /><span class="field-error" data-error-for="temporaryPassword"></span></label>
+                <label class="manual-password-field">Confirm Temporary Password<input type="password" name="confirmTemporaryPassword" autocomplete="new-password" /><span class="field-error" data-error-for="confirmTemporaryPassword"></span></label>
+              </div>
+              <p class="manual-account-notice" id="manualAccountNotice" hidden></p>
+            </section>
+
+            <section class="manual-step-panel manual-form-section" data-manual-step="2" hidden>
+              <h3>Booking Details</h3>
+              <div class="form-grid">
+                <label>Service Type<select name="serviceType"></select><span class="field-error" data-error-for="serviceType"></span></label>
+                <label>Package<select name="packageName"></select><span class="field-error" data-error-for="packageName"></span></label>
+                <div class="manual-package-preview manual-full-row" id="manualPackagePreview">
+                  <span>Selected package summary</span>
+                  <p>Select a package to see price and deliverables.</p>
+                </div>
+                <label>Event Date<input type="date" name="eventDate" /><span class="field-error" data-error-for="eventDate"></span></label>
+                <label>Event Time<input type="time" name="eventTime" /><span class="field-error" data-error-for="eventTime"></span></label>
+                <label>Event Location<input type="text" name="location" /><span class="field-error" data-error-for="location"></span></label>
+                <label>Budget Range<select name="budget"><option value="">Choose budget range</option><option value="Below PHP 15,000">Below PHP 15,000</option><option value="PHP 15,000 - PHP 30,000">PHP 15,000 - PHP 30,000</option><option value="PHP 30,000 - PHP 50,000">PHP 30,000 - PHP 50,000</option><option value="PHP 50,000+">PHP 50,000+</option></select><span class="field-error" data-error-for="budget"></span></label>
+                <label class="manual-full-row">Event Details<textarea name="details" rows="4"></textarea><span class="field-error" data-error-for="details"></span></label>
+                <label class="manual-full-row">Additional Notes<textarea name="notes" rows="3"></textarea><span class="field-error" data-error-for="notes"></span></label>
+              </div>
+            </section>
+
+            <section class="manual-step-panel manual-form-section" data-manual-step="3" hidden>
+              <h3>Workflow</h3>
+              <div class="form-grid">
+                <label>Initial Status<select name="initialStatus"><option value="Pending Review">Pending Review</option><option value="Approved for Meeting">Approved for Meeting</option><option value="Confirmed">Booking Confirmed</option></select><span class="field-error" data-error-for="initialStatus"></span></label>
+                <label class="manual-final-amount-field" hidden>Final Agreed Package Amount<input type="number" min="0" name="finalAgreedAmount" /><span class="field-error" data-error-for="finalAgreedAmount"></span></label>
+                <p class="table-helper manual-full-row">Choose Booking Confirmed only if details were already discussed and agreed with the client.</p>
+                <label class="manual-full-row manual-notes-field">Internal Admin Notes<textarea name="adminNotes" rows="4"></textarea><span class="field-error" data-error-for="adminNotes"></span></label>
+              </div>
+            </section>
+
+            <section class="manual-step-panel manual-form-section" data-manual-step="4" hidden>
+              <h3>Review Booking</h3>
+              <p class="manual-review-intro">Review the booking details before creating the record.</p>
+              <dl class="manual-review-grid" id="manualBookingReview"></dl>
+            </section>
+          </div>
+        </div>
+
+        <div class="manual-modal-actions">
+          <div class="manual-actions-left">
+            <button class="btn ghost" type="button" data-manual-cancel data-close-manual-booking>Cancel</button>
+            <button class="btn ghost" type="button" data-manual-back hidden>Back</button>
+          </div>
+          <div>
+            <button class="btn primary" type="button" data-manual-next>Next: Booking Details</button>
+            <button class="btn primary" type="submit" data-manual-submit hidden>Create Manual Booking</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <footer class="footer"><p>&copy; 2026 DG Film Co.</p></footer>
+  <script src="js/data.js"></script>
+  <script src="js/loading.js"></script>
+  <script src="js/script.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/rbac.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/confirmations.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>

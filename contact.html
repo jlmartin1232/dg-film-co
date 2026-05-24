@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact | DG Film Co.</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <a class="logo" href="index.html">DG Film Co.</a>
+    <button class="menu-toggle" aria-label="Open navigation">Menu</button>
+    <nav class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="work.html">Work</a>
+      <a href="services.html">Services</a>
+      <a href="pricing.html">Pricing</a>
+      <a href="about.html">About</a>
+      <a href="login.html">Login</a>
+      <a href="register.html">Register</a>
+      <a href="contact.html" class="nav-cta active">Book a Shoot</a>
+    </nav>
+  </header>
+
+  <main class="page-main">
+    <section class="page-hero small">
+      <p class="eyebrow">Contact / Book</p>
+      <h1>Tell us what you’re planning.</h1>
+      <p>Complete the form and our team will review your inquiry within 24 hours.</p>
+    </section>
+
+    <section class="section contact-layout">
+      <form class="inquiry-form" id="inquiryForm" action="thank-you.html">
+        <input type="text" name="website" class="hidden-field" tabindex="-1" autocomplete="off" />
+
+        <label>Full Name
+          <input type="text" name="name" placeholder="Your name" required />
+        </label>
+
+        <label>Email Address
+          <input type="email" name="email" placeholder="you@email.com" required />
+        </label>
+
+        <label>Service Type
+          <select name="service" id="serviceSelect" required>
+            <option value="">Choose a service</option>
+            <option value="Wedding">Wedding</option>
+            <option value="Corporate">Corporate</option>
+            <option value="Music / Film">Music / Film</option>
+            <option value="Restaurant / Food Promo">Restaurant / Food Promo</option>
+            <option value="Nightlife">Nightlife</option>
+          </select>
+        </label>
+
+        <label id="dynamicQuestionLabel">Project Detail
+          <input type="text" name="detail" id="dynamicQuestion" placeholder="Tell us the main idea of your project" />
+        </label>
+
+        <label>Date
+          <input type="text" name="date" placeholder="Project date or 'still flexible'" />
+        </label>
+
+        <label>Location / City
+          <input type="text" name="location" placeholder="City or venue" />
+        </label>
+
+        <label>Budget Range
+          <select name="budget">
+            <option value="Not sure — need guidance">Not sure — need guidance</option>
+            <option value="₱15,000 - ₱30,000">₱15,000 - ₱30,000</option>
+            <option value="₱30,000 - ₱60,000">₱30,000 - ₱60,000</option>
+            <option value="₱60,000+">₱60,000+</option>
+          </select>
+        </label>
+
+        <label>Tell us about it
+          <textarea name="message" rows="5" placeholder="What do you want the final video/photos to feel like?"></textarea>
+        </label>
+
+        <label>How did you hear about us? <span class="optional">Optional</span>
+          <input type="text" name="source" placeholder="Instagram, referral, Google, school, etc." />
+        </label>
+
+        <button type="submit" class="btn primary full">Submit inquiry</button>
+      </form>
+
+      <aside class="contact-card">
+        <p class="eyebrow">Why this form is short</p>
+        <h2>We only ask what matters first.</h2>
+        <p>This inquiry form avoids unnecessary fields like full address, required phone number, equipment list, and long shot lists. Those details are better discussed during a discovery call.</p>
+        <div class="contact-detail"><strong>Email</strong><span>hello@dgfilmco.com</span></div>
+        <div class="contact-detail"><strong>Instagram</strong><span>@dgfilmco</span></div>
+      </aside>
+    </section>
+  </main>
+
+  <footer class="footer"><p>&copy; 2026 DG Film Co.</p></footer>
+  <script src="js/data.js"></script>
+  <script src="js/loading.js"></script>
+  <script src="js/script.js"></script>
+</body>
+</html>
