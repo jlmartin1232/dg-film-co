@@ -45,7 +45,19 @@
       <div class="portfolio-category-grid" id="portfolioCategoryGrid"></div>
     </section>
 
-    <section class="section">
+    <section class="section photo-highlights-section">
+      <div class="section-heading">
+        <p class="eyebrow">Photo Highlights</p>
+        <h2><span>Moments, details, and stories</span><span>captured across every project.</span></h2>
+      </div>
+      <div class="photo-highlights-grid" id="portfolioPhotoHighlights"></div>
+    </section>
+
+    <section class="section video-highlights-section">
+      <div class="section-heading">
+        <p class="eyebrow">Video Highlights</p>
+        <h2><span>Films, recaps, and stories</span><span>told in motion.</span></h2>
+      </div>
       <div class="filter-bar">
         <button class="filter-btn active" data-portfolio-filter="all">All</button>
         <button class="filter-btn" data-portfolio-filter="wedding">Wedding Photo/Video</button>
@@ -69,6 +81,18 @@
       <h2 data-modal-title>DG Film Co. Preview</h2>
       <video controls playsinline preload="metadata"></video>
       <p class="muted-text">Watch selected DG Film Co. reels and featured stories.</p>
+    </div>
+  </div>
+
+  <div class="photo-lightbox" id="photoHighlightLightbox" aria-hidden="true">
+    <div class="photo-lightbox-panel" role="dialog" aria-modal="true" aria-label="Photo highlight preview">
+      <button class="modal-close photo-lightbox-close" type="button" data-close-photo-lightbox>Close</button>
+      <img src="" alt="" data-photo-lightbox-image />
+      <div class="photo-lightbox-copy">
+        <p class="eyebrow" data-photo-lightbox-title></p>
+        <p data-photo-lightbox-caption></p>
+        <a class="btn primary small" href="contact.html" data-photo-lightbox-inquire>Inquire</a>
+      </div>
     </div>
   </div>
 

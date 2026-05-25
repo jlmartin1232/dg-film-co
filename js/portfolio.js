@@ -94,6 +94,43 @@ const DG_PORTFOLIO_CATEGORIES = [
   'Product / Brand Event'
 ];
 
+const DG_PORTFOLIO_HIGHLIGHT_CAPTIONS = {
+  'Wedding Photo/Video': 'Ceremony moments, portraits, and reception details.',
+  'Debut / Birthday Coverage': 'Celebration highlights and milestone portraits.',
+  'Corporate / Commercial Video': 'Brand visuals, interviews, and business events.',
+  'Restaurant / Food Promo': 'Food, ambience, and hospitality details.',
+  'Nightlife / Club Events': 'High-energy scenes, crowd moments, and social recaps.',
+  'Graduation / Event Coverage': 'Formal milestones and recognition moments.',
+  'Pageant / Event Coverage': 'Stage highlights, portraits, and candidate features.',
+  'Creative Film / Documentary': 'Story-led frames with atmosphere and emotion.',
+  'Product / Brand Event': 'Launch visuals, product details, and campaign moments.'
+};
+
+const DG_PORTFOLIO_HIGHLIGHT_IMAGES = {
+  'Wedding Photo/Video': 'assets/images/photo-highlights/wedding-photo-video.jpg',
+  'Debut / Birthday Coverage': 'assets/images/photo-highlights/debut-birthday-coverage.jpg',
+  'Corporate / Commercial Video': 'assets/images/photo-highlights/corporate-commercial-video.jpg',
+  'Restaurant / Food Promo': 'assets/images/photo-highlights/restaurant-food-promo.jpg',
+  'Nightlife / Club Events': 'assets/images/photo-highlights/nightlife-club-events.jpg',
+  'Graduation / Event Coverage': 'assets/images/photo-highlights/graduation-event-coverage.jpg',
+  'Pageant / Event Coverage': 'assets/images/photo-highlights/pageant-event-coverage.jpg',
+  'Creative Film / Documentary': 'assets/images/photo-highlights/creative-film-documentary.jpg',
+  'Product / Brand Event': 'assets/images/photo-highlights/product-brand-event.jpg'
+};
+
+const DG_PHOTO_HIGHLIGHT_SETTINGS_KEY = 'dgPhotoHighlightSettings';
+const DG_PHOTO_HIGHLIGHT_DEFAULTS = {
+  'Wedding Photo/Video': { x: 50, y: 35 },
+  'Debut / Birthday Coverage': { x: 50, y: 35 },
+  'Corporate / Commercial Video': { x: 50, y: 45 },
+  'Restaurant / Food Promo': { x: 50, y: 45 },
+  'Nightlife / Club Events': { x: 50, y: 50 },
+  'Graduation / Event Coverage': { x: 50, y: 28 },
+  'Pageant / Event Coverage': { x: 50, y: 35 },
+  'Creative Film / Documentary': { x: 50, y: 50 },
+  'Product / Brand Event': { x: 50, y: 45 }
+};
+
 const DG_PORTFOLIO_SHOWREEL = {
   title: 'Visual Story',
   poster: '',
@@ -110,7 +147,33 @@ function dgPortfolioEscape(value) {
 }
 
 function dgPortfolioBookHref(service) {
-  return `contact.html?service=${encodeURIComponent(service || '')}`;
+  const hasClientNav = Boolean(document.querySelector('.dashboard-header [data-logout]'));
+  const page = hasClientNav ? 'book-service.html' : 'contact.html';
+  return `${page}?service=${encodeURIComponent(service || '')}`;
+}
+
+function dgPortfolioClampPercent(value, fallback = 50) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return fallback;
+  return Math.min(100, Math.max(0, Math.round(number)));
+}
+
+function dgPortfolioStoredHighlightSettings() {
+  try {
+    if (window.DGData) return DGData.getJson(DG_PHOTO_HIGHLIGHT_SETTINGS_KEY, {});
+    return JSON.parse(localStorage.getItem(DG_PHOTO_HIGHLIGHT_SETTINGS_KEY) || '{}');
+  } catch (error) {
+    return {};
+  }
+}
+
+function dgPortfolioHighlightPosition(category) {
+  const saved = dgPortfolioStoredHighlightSettings();
+  const fallback = DG_PHOTO_HIGHLIGHT_DEFAULTS[category] || { x: 50, y: 50 };
+  const position = saved && saved[category] ? saved[category] : {};
+  const x = dgPortfolioClampPercent(position.x, fallback.x);
+  const y = dgPortfolioClampPercent(position.y, fallback.y);
+  return `${x}% ${y}%`;
 }
 
 function dgPortfolioWorkHref() {
@@ -164,11 +227,29 @@ function dgPortfolioCard(work, variant = 'default') {
         <h3>${dgPortfolioEscape(work.title)}</h3>
         <p>${dgPortfolioEscape(work.description)}</p>
         <div class="portfolio-card-actions">
-          <button class="btn ghost small" type="button" data-watch-preview="${dgPortfolioEscape(work.video)}" data-work-title="${dgPortfolioEscape(work.title)}" data-work-poster="${dgPortfolioEscape(work.poster)}">Watch Preview</button>
-          <a class="btn ghost small" href="${dgPortfolioWorkHref()}">View Portfolio</a>
+          <button class="btn ghost small" type="button" data-watch-preview="${dgPortfolioEscape(work.video)}" data-work-title="${dgPortfolioEscape(work.title)}" data-work-poster="${dgPortfolioEscape(work.poster)}">Watch Film</button>
         </div>
       </div>
     </article>
+  `;
+}
+
+function dgPortfolioPhotoHighlightCard(work) {
+  const caption = DG_PORTFOLIO_HIGHLIGHT_CAPTIONS[work.category] || work.description;
+  const image = DG_PORTFOLIO_HIGHLIGHT_IMAGES[work.category] || '';
+  const focalClass = work.slug === 'creative' ? 'photo-highlight-documentary' : `photo-highlight-${work.slug}`;
+  const objectPosition = dgPortfolioHighlightPosition(work.category);
+  return `
+    <button class="photo-highlight-card ${dgPortfolioEscape(focalClass)}" type="button" data-category="${dgPortfolioEscape(work.slug)}" data-photo-highlight-preview="${dgPortfolioEscape(image)}" data-photo-highlight-title="${dgPortfolioEscape(work.category)}" data-photo-highlight-caption="${dgPortfolioEscape(caption)}" data-photo-highlight-service="${dgPortfolioEscape(work.service)}" aria-label="View ${dgPortfolioEscape(work.category)} photo highlight">
+      <div class="photo-highlight-media">
+        <img src="${dgPortfolioEscape(image)}" alt="${dgPortfolioEscape(work.category)} highlight" loading="lazy" style="object-position: ${dgPortfolioEscape(objectPosition)};" />
+      </div>
+      <div class="photo-highlight-copy">
+        <p class="eyebrow">${dgPortfolioEscape(work.category)}</p>
+        <p>${dgPortfolioEscape(caption)}</p>
+      </div>
+      <span class="photo-highlight-hint">View photo</span>
+    </button>
   `;
 }
 
@@ -176,7 +257,8 @@ function dgRenderPortfolioPage() {
   const grid = document.getElementById('portfolioWorksGrid');
   const categories = document.getElementById('portfolioCategoryGrid');
   const hero = document.getElementById('portfolioHeroReel');
-  if (!grid && !categories && !hero) return;
+  const highlights = document.getElementById('portfolioPhotoHighlights');
+  if (!grid && !categories && !hero && !highlights) return;
 
   if (hero) {
     const featured = DG_PORTFOLIO_WORKS[0];
@@ -199,6 +281,13 @@ function dgRenderPortfolioPage() {
     categories.innerHTML = DG_PORTFOLIO_CATEGORIES.map((category) => `
       <a class="portfolio-category-chip" href="#portfolioWorksGrid" data-category-jump="${dgPortfolioEscape(category)}">${dgPortfolioEscape(category)}</a>
     `).join('');
+  }
+
+  if (highlights) {
+    highlights.innerHTML = DG_PORTFOLIO_CATEGORIES.map((category) => {
+      const work = DG_PORTFOLIO_WORKS.find((item) => item.category === category);
+      return work ? dgPortfolioPhotoHighlightCard(work) : '';
+    }).join('');
   }
 
   if (grid) {
@@ -461,6 +550,56 @@ function dgSetupPortfolioCategoryJumps() {
   });
 }
 
+function dgSetupPhotoHighlightLightbox() {
+  const lightbox = document.getElementById('photoHighlightLightbox');
+  if (!lightbox) return;
+  const image = lightbox.querySelector('[data-photo-lightbox-image]');
+  const title = lightbox.querySelector('[data-photo-lightbox-title]');
+  const caption = lightbox.querySelector('[data-photo-lightbox-caption]');
+  const inquire = lightbox.querySelector('[data-photo-lightbox-inquire]');
+
+  const closeLightbox = () => {
+    lightbox.classList.remove('open');
+    lightbox.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('photo-lightbox-active');
+    if (image) {
+      image.removeAttribute('src');
+      image.alt = '';
+    }
+  };
+
+  const openLightbox = (trigger) => {
+    const photoTitle = trigger.dataset.photoHighlightTitle || 'Photo Highlight';
+    const photoCaption = trigger.dataset.photoHighlightCaption || '';
+    const service = trigger.dataset.photoHighlightService || photoTitle;
+    if (image) {
+      image.src = trigger.dataset.photoHighlightPreview || '';
+      image.alt = `${photoTitle} highlight`;
+    }
+    if (title) title.textContent = photoTitle;
+    if (caption) caption.textContent = photoCaption;
+    if (inquire) inquire.href = dgPortfolioBookHref(service);
+    lightbox.classList.add('open');
+    lightbox.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('photo-lightbox-active');
+  };
+
+  document.addEventListener('click', (event) => {
+    const trigger = event.target.closest('[data-photo-highlight-preview]');
+    if (trigger) {
+      openLightbox(trigger);
+      return;
+    }
+    if (event.target.closest('[data-close-photo-lightbox]') || event.target === lightbox) {
+      closeLightbox();
+    }
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && lightbox.classList.contains('open')) closeLightbox();
+  });
+}
+
 function dgApplyPortfolioFilter(slug) {
   document.querySelectorAll('.portfolio-work-card[data-category]').forEach((card) => {
     const match = slug === 'all' || card.dataset.category === slug;
@@ -506,6 +645,7 @@ document.addEventListener('DOMContentLoaded', () => {
   dgSetupPortfolioVideoPreviews();
   dgSetupPortfolioSoundToggles();
   dgSetupPortfolioCategoryJumps();
+  dgSetupPhotoHighlightLightbox();
   dgSetupPortfolioFilters();
 });
 

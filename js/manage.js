@@ -67,6 +67,40 @@ function dgMPayments() { return dgMGet(DGData.keys.payments, []); }
 
 const DG_PAYMENT_SETTINGS_KEY = 'dgPaymentSettings';
 const DG_PAYMENT_METHOD_OPTIONS = ['GCash', 'Bank Transfer', 'Cash / On-site Payment', 'Other'];
+const DG_PHOTO_HIGHLIGHT_SETTINGS_KEY = 'dgPhotoHighlightSettings';
+const DG_PHOTO_HIGHLIGHT_CATEGORIES = [
+  'Wedding Photo/Video',
+  'Debut / Birthday Coverage',
+  'Corporate / Commercial Video',
+  'Restaurant / Food Promo',
+  'Nightlife / Club Events',
+  'Graduation / Event Coverage',
+  'Pageant / Event Coverage',
+  'Creative Film / Documentary',
+  'Product / Brand Event'
+];
+const DG_PHOTO_HIGHLIGHT_IMAGES = {
+  'Wedding Photo/Video': 'assets/images/photo-highlights/wedding-photo-video.jpg',
+  'Debut / Birthday Coverage': 'assets/images/photo-highlights/debut-birthday-coverage.jpg',
+  'Corporate / Commercial Video': 'assets/images/photo-highlights/corporate-commercial-video.jpg',
+  'Restaurant / Food Promo': 'assets/images/photo-highlights/restaurant-food-promo.jpg',
+  'Nightlife / Club Events': 'assets/images/photo-highlights/nightlife-club-events.jpg',
+  'Graduation / Event Coverage': 'assets/images/photo-highlights/graduation-event-coverage.jpg',
+  'Pageant / Event Coverage': 'assets/images/photo-highlights/pageant-event-coverage.jpg',
+  'Creative Film / Documentary': 'assets/images/photo-highlights/creative-film-documentary.jpg',
+  'Product / Brand Event': 'assets/images/photo-highlights/product-brand-event.jpg'
+};
+const DG_PHOTO_HIGHLIGHT_DEFAULTS = {
+  'Wedding Photo/Video': { x: 50, y: 35 },
+  'Debut / Birthday Coverage': { x: 50, y: 35 },
+  'Corporate / Commercial Video': { x: 50, y: 45 },
+  'Restaurant / Food Promo': { x: 50, y: 45 },
+  'Nightlife / Club Events': { x: 50, y: 50 },
+  'Graduation / Event Coverage': { x: 50, y: 28 },
+  'Pageant / Event Coverage': { x: 50, y: 35 },
+  'Creative Film / Documentary': { x: 50, y: 50 },
+  'Product / Brand Event': { x: 50, y: 45 }
+};
 
 function dgMPaymentMethodId(type) {
   return ({
@@ -798,6 +832,117 @@ function dgMSetupServices() {
   render();
 }
 
+function dgMClampPercent(value, fallback = 50) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return fallback;
+  return Math.min(100, Math.max(0, Math.round(number)));
+}
+
+function dgMPhotoHighlightSettings(source = dgMGet(DG_PHOTO_HIGHLIGHT_SETTINGS_KEY, {})) {
+  return DG_PHOTO_HIGHLIGHT_CATEGORIES.reduce((settings, category) => {
+    const fallback = DG_PHOTO_HIGHLIGHT_DEFAULTS[category] || { x: 50, y: 50 };
+    const saved = source && source[category] ? source[category] : {};
+    settings[category] = {
+      x: dgMClampPercent(saved.x, fallback.x),
+      y: dgMClampPercent(saved.y, fallback.y)
+    };
+    return settings;
+  }, {});
+}
+
+function dgMSetupPhotoHighlightSettings() {
+  const grid = document.getElementById('photoHighlightSettingsGrid');
+  if (!grid) return;
+  if (!dgManageAdmin()) return;
+  const saveButton = document.getElementById('savePhotoHighlightSettingsBtn');
+  const resetButton = document.getElementById('resetPhotoHighlightSettingsBtn');
+  let settings = dgMPhotoHighlightSettings();
+
+  const showSuccessModal = (title, message) => {
+    if (window.confirmAction) {
+      window.confirmAction({
+        title,
+        message,
+        confirmText: 'Done',
+        cancelText: null,
+        variant: 'success',
+        onConfirm: () => {}
+      });
+      return;
+    }
+    window.alert(title);
+  };
+
+  const updateCardPreview = (card) => {
+    if (!card) return;
+    const xInput = card.querySelector('[data-photo-highlight-x]');
+    const yInput = card.querySelector('[data-photo-highlight-y]');
+    const xValue = card.querySelector('[data-photo-highlight-x-value]');
+    const yValue = card.querySelector('[data-photo-highlight-y-value]');
+    const image = card.querySelector('img');
+    const x = dgMClampPercent(xInput?.value);
+    const y = dgMClampPercent(yInput?.value);
+    if (xValue) xValue.textContent = `${x}%`;
+    if (yValue) yValue.textContent = `${y}%`;
+    if (image) image.style.objectPosition = `${x}% ${y}%`;
+  };
+
+  const render = () => {
+    grid.innerHTML = DG_PHOTO_HIGHLIGHT_CATEGORIES.map((category) => {
+      const position = settings[category] || DG_PHOTO_HIGHLIGHT_DEFAULTS[category] || { x: 50, y: 50 };
+      const image = DG_PHOTO_HIGHLIGHT_IMAGES[category];
+      return `
+        <article class="photo-highlight-admin-card" data-photo-highlight-admin-card data-photo-highlight-category="${dgMEscape(category)}">
+          <div class="photo-highlight-admin-preview">
+            <img src="${dgMEscape(image)}" alt="${dgMEscape(category)} thumbnail preview" style="object-position: ${position.x}% ${position.y}%;" loading="lazy" />
+          </div>
+          <div class="photo-highlight-admin-copy">
+            <h3>${dgMEscape(category)}</h3>
+            <label>
+              <span>Horizontal Position <strong data-photo-highlight-x-value>${position.x}%</strong></span>
+              <input type="range" min="0" max="100" value="${position.x}" data-photo-highlight-x />
+            </label>
+            <label>
+              <span>Vertical Position <strong data-photo-highlight-y-value>${position.y}%</strong></span>
+              <input type="range" min="0" max="100" value="${position.y}" data-photo-highlight-y />
+            </label>
+          </div>
+        </article>
+      `;
+    }).join('');
+  };
+
+  grid.addEventListener('input', (event) => {
+    const slider = event.target.closest('[data-photo-highlight-x], [data-photo-highlight-y]');
+    if (!slider) return;
+    updateCardPreview(slider.closest('[data-photo-highlight-admin-card]'));
+  });
+
+  saveButton?.addEventListener('click', () => {
+    const next = {};
+    grid.querySelectorAll('[data-photo-highlight-admin-card]').forEach((card) => {
+      const category = card.dataset.photoHighlightCategory;
+      next[category] = {
+        x: dgMClampPercent(card.querySelector('[data-photo-highlight-x]')?.value),
+        y: dgMClampPercent(card.querySelector('[data-photo-highlight-y]')?.value)
+      };
+    });
+    dgMSave(DG_PHOTO_HIGHLIGHT_SETTINGS_KEY, next);
+    settings = dgMPhotoHighlightSettings(next);
+    render();
+    showSuccessModal('Thumbnail positions saved.', 'Your Photo Highlight thumbnail focal points have been saved.');
+  });
+
+  resetButton?.addEventListener('click', () => {
+    dgMSave(DG_PHOTO_HIGHLIGHT_SETTINGS_KEY, DG_PHOTO_HIGHLIGHT_DEFAULTS);
+    settings = dgMPhotoHighlightSettings(DG_PHOTO_HIGHLIGHT_DEFAULTS);
+    render();
+    showSuccessModal('Thumbnail positions reset to defaults.', 'The Photo Highlight thumbnail focal points are back to the default positions.');
+  });
+
+  render();
+}
+
 function dgMPopulateServiceSelect(select) {
   select.innerHTML = '<option value="">Choose a service</option>' + dgMServices().map((svc) => `<option value="${dgMEscape(svc.id)}">${dgMEscape(svc.name)}</option>`).join('');
 }
@@ -1226,6 +1371,7 @@ function dgMSetupReports() {
 document.addEventListener('DOMContentLoaded', () => {
   dgMSetupUsers();
   dgMSetupServices();
+  dgMSetupPhotoHighlightSettings();
   dgMSetupPricing();
   dgMSetupPaymentSettings();
   dgMSetupReports();
