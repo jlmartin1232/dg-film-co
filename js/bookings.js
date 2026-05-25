@@ -151,6 +151,58 @@ function dgValidPhone(value) {
   return /^(09\d{9}|\+639\d{9})$/.test(value);
 }
 
+function dgCleanBookingContactNumber(value) {
+  return String(value || '').replace(/\D/g, '').slice(0, 11);
+}
+
+function dgSetBookingRequestError(form, fieldName, message) {
+  dgSetFieldError(form, fieldName, message);
+  const field = form.elements[fieldName];
+  if (!field) return;
+  if (message) {
+    field.setAttribute('aria-invalid', 'true');
+  } else {
+    field.removeAttribute('aria-invalid');
+  }
+}
+
+function dgClearBookingRequestErrors(form) {
+  dgClearFieldErrors(form);
+  Array.from(form.elements).forEach((field) => field.removeAttribute('aria-invalid'));
+}
+
+function dgSetupBookingContactNumberInput(form) {
+  const contactNumber = form.elements.contactNumber;
+  if (!contactNumber) return;
+
+  contactNumber.addEventListener('input', () => {
+    const cleanedValue = dgCleanBookingContactNumber(contactNumber.value);
+    if (contactNumber.value !== cleanedValue) contactNumber.value = cleanedValue;
+  });
+
+  contactNumber.addEventListener('paste', (event) => {
+    if (!event.clipboardData) return;
+    event.preventDefault();
+    const start = contactNumber.selectionStart ?? contactNumber.value.length;
+    const end = contactNumber.selectionEnd ?? start;
+    const pastedDigits = dgCleanBookingContactNumber(event.clipboardData.getData('text'));
+    const combinedValue = contactNumber.value.slice(0, start) + pastedDigits + contactNumber.value.slice(end);
+    contactNumber.value = dgCleanBookingContactNumber(combinedValue);
+    const cursor = Math.min(start + pastedDigits.length, contactNumber.value.length);
+    contactNumber.setSelectionRange(cursor, cursor);
+    contactNumber.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+}
+
+function dgOpenBookingSuccessModal() {
+  const modal = document.querySelector('[data-booking-success-modal]');
+  if (!modal) return;
+  modal.hidden = false;
+  document.body.classList.add('booking-success-open');
+  const panel = modal.querySelector('[role="dialog"]');
+  if (panel) panel.focus();
+}
+
 function dgBadgeClass(status) {
   return `badge status-${String(status || '').toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
 }
@@ -545,11 +597,12 @@ function dgCanRequestProductionUpdate(booking) {
 }
 
 function dgProjectContactFallback() {
+  const studioSettings = DGData.getJson('dgStudioSettings', {});
   return {
-    name: 'Mark Dela Cruz',
-    role: 'Project Coordinator',
-    contactNumber: '09123456789',
-    email: 'mark.dgfilmco@gmail.com'
+    name: String(studioSettings.defaultProjectContactName || 'Mark Dela Cruz').trim(),
+    role: String(studioSettings.defaultProjectContactRole || 'Project Coordinator').trim(),
+    contactNumber: String(studioSettings.defaultProjectContactNumber || '09123456789').trim(),
+    email: String(studioSettings.defaultProjectContactEmail || 'mark.dgfilmco@gmail.com').trim()
   };
 }
 
@@ -933,7 +986,11 @@ function dgReceiptSubmissionModal(selectedType, amount, remaining) {
                 <span class="field-error" data-error-for="referenceNumber"></span>
               </label>
               <label class="receipt-upload-field">Receipt File
-                <input type="file" name="receiptFile" accept=".jpg,.jpeg,.png,.pdf" />
+                <input class="receipt-file-input" type="file" name="receiptFile" accept=".jpg,.jpeg,.png,.pdf" />
+                <span class="receipt-file-control">
+                  <span class="receipt-file-trigger">Choose Receipt File</span>
+                  <span class="receipt-file-name" data-modal-receipt-file-name>No file selected yet</span>
+                </span>
                 <small class="field-hint field-helper">JPG, PNG, or PDF up to 5MB.</small>
                 <small class="field-hint" data-modal-receipt-hint></small>
                 <span class="field-error" data-error-for="receiptFile"></span>
@@ -1196,7 +1253,9 @@ function dgUpdateReceiptSubmissionModal(panel) {
   if (remainingLabel) remainingLabel.textContent = dgMoney(remainingAfterPayment);
 }
 
-function dgOpenPaymentReceiptModal(panel, booking) {
+let dgPaymentModalOpenTimer = null;
+
+function dgOpenPaymentReceiptModal(panel, booking, skipSafeScroll = false) {
   const modal = panel?.querySelector('[data-payment-modal]');
   if (!modal) return;
   const choice = dgPaymentChoiceValue(panel);
@@ -1217,6 +1276,20 @@ function dgOpenPaymentReceiptModal(panel, booking) {
     return;
   }
   if (methodHelper) methodHelper.hidden = true;
+  if (!skipSafeScroll) {
+    const scrollTarget = panel.closest('.balance-payment-panel, .invoice-card') || panel;
+    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if (dgPaymentModalOpenTimer) window.clearTimeout(dgPaymentModalOpenTimer);
+    scrollTarget.scrollIntoView({
+      behavior: reduceMotion ? 'auto' : 'smooth',
+      block: 'center'
+    });
+    dgPaymentModalOpenTimer = window.setTimeout(() => {
+      dgPaymentModalOpenTimer = null;
+      dgOpenPaymentReceiptModal(panel, booking, true);
+    }, reduceMotion ? 0 : 320);
+    return;
+  }
   const form = modal.querySelector('[data-payment-modal-form]');
   if (form) {
     form.reset();
@@ -1230,10 +1303,12 @@ function dgOpenPaymentReceiptModal(panel, booking) {
   const amount = modal.querySelector('[data-modal-payment-amount]');
   const remaining = modal.querySelector('[data-modal-payment-remaining]');
   const hint = modal.querySelector('[data-modal-receipt-hint]');
+  const fileName = modal.querySelector('[data-modal-receipt-file-name]');
   if (type) type.textContent = dgPaymentLabel(choice.selectedType);
   if (amount) amount.textContent = dgMoney(choice.amountPaid);
   if (remaining) remaining.textContent = dgMoney(choice.remainingAfterPayment);
   if (hint) hint.textContent = '';
+  if (fileName) fileName.textContent = 'No file selected yet';
   modal.hidden = false;
   document.body.classList.add('payment-modal-open');
   window.requestAnimationFrame(() => {
@@ -1243,9 +1318,55 @@ function dgOpenPaymentReceiptModal(panel, booking) {
 }
 
 function dgClosePaymentReceiptModal(modal) {
+  if (dgPaymentModalOpenTimer) {
+    window.clearTimeout(dgPaymentModalOpenTimer);
+    dgPaymentModalOpenTimer = null;
+  }
   if (!modal) return;
   modal.hidden = true;
   document.body.classList.remove('payment-modal-open');
+}
+
+function dgEnsureReceiptSuccessModal() {
+  let modal = document.querySelector('[data-receipt-success-modal]');
+  if (modal) return modal;
+  modal = document.createElement('div');
+  modal.className = 'receipt-success-modal';
+  modal.dataset.receiptSuccessModal = '';
+  modal.hidden = true;
+  modal.innerHTML = `
+    <section class="receipt-success-panel" role="dialog" aria-modal="true" aria-labelledby="receiptSuccessTitle" aria-describedby="receiptSuccessDescription" tabindex="-1">
+      <p class="eyebrow">Payment Receipt</p>
+      <h2 id="receiptSuccessTitle">Receipt submitted.</h2>
+      <p id="receiptSuccessDescription">Your payment receipt has been uploaded successfully and is now waiting for admin verification.</p>
+      <p class="receipt-success-review"><strong>Expected verification time</strong>Please wait for verification. This may take a few minutes to a few hours. You can check your payment status in My Projects or Payments.</p>
+      <div class="receipt-success-next">
+        <h3>Next steps</h3>
+        <ol>
+          <li>DG Film Co. reviews your submitted receipt.</li>
+          <li>Your payment status will update once verified.</li>
+          <li>You may receive a notification in the system after review.</li>
+        </ol>
+      </div>
+      <div class="receipt-success-actions">
+        <a class="btn primary" data-receipt-success-project href="my-bookings.html">View My Projects</a>
+        <a class="btn ghost" href="upload-payment.html">Go to Payments</a>
+      </div>
+    </section>
+  `;
+  document.body.appendChild(modal);
+  return modal;
+}
+
+function dgOpenReceiptSuccessModal(booking) {
+  const modal = dgEnsureReceiptSuccessModal();
+  const projectLink = modal.querySelector('[data-receipt-success-project]');
+  if (projectLink && booking?.id) {
+    projectLink.href = `booking-details.html?id=${encodeURIComponent(booking.id)}&scroll=current-step`;
+  }
+  modal.hidden = false;
+  document.body.classList.add('receipt-success-open');
+  modal.querySelector('[role="dialog"]')?.focus();
 }
 
 function dgValidatePaymentReceiptForm(form, booking, selectedType, amountPaid) {
@@ -1896,17 +2017,30 @@ function dgSetupBookingForm() {
   }
   form.eventDate.min = dgToday();
   dgUpdatePackagePreview(form);
+  dgSetupBookingContactNumberInput(form);
 
   serviceSelect.addEventListener('change', () => {
     dgPopulatePackageOptions(serviceSelect, packageSelect);
     dgUpdatePackagePreview(form);
   });
   packageSelect.addEventListener('change', () => dgUpdatePackagePreview(form));
+  Array.from(form.elements).forEach((field) => {
+    if (!field.name) return;
+    const clearError = () => dgSetBookingRequestError(form, field.name, '');
+    field.addEventListener('input', clearError);
+    field.addEventListener('change', clearError);
+  });
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
-    dgClearFieldErrors(form);
+    dgClearBookingRequestErrors(form);
     let valid = true;
+    let firstInvalidField = null;
+    const fail = (fieldName, message) => {
+      dgSetBookingRequestError(form, fieldName, message);
+      if (!firstInvalidField) firstInvalidField = form.elements[fieldName];
+      valid = false;
+    };
 
     const values = {
       serviceType: form.serviceType.value,
@@ -1924,20 +2058,32 @@ function dgSetupBookingForm() {
       notes: form.notes.value.trim()
     };
 
-    if (!values.serviceType) { dgSetFieldError(form, 'serviceType', 'Service type is required.'); valid = false; }
-    if (!values.packageName) { dgSetFieldError(form, 'packageName', 'Package is required.'); valid = false; }
-    if (!values.eventDate) { dgSetFieldError(form, 'eventDate', 'Event date is required.'); valid = false; }
-    if (values.eventDate && dgIsPastDate(values.eventDate)) { dgSetFieldError(form, 'eventDate', 'Event date cannot be in the past.'); valid = false; }
-    if (!values.eventTime) { dgSetFieldError(form, 'eventTime', 'Event time is required.'); valid = false; }
-    if (!values.location) { dgSetFieldError(form, 'location', 'Event location is required.'); valid = false; }
-    if (!values.budget) { dgSetFieldError(form, 'budget', 'Budget range is required.'); valid = false; }
-    if (!values.contactNumber) { dgSetFieldError(form, 'contactNumber', 'Contact number is required.'); valid = false; }
-    if (values.contactNumber && !dgValidPhone(values.contactNumber)) { dgSetFieldError(form, 'contactNumber', 'Use 09XXXXXXXXX or +639XXXXXXXXX.'); valid = false; }
-    if (!values.details) { dgSetFieldError(form, 'details', 'Event details are required.'); valid = false; }
-    if (values.details && values.details.length < 20) { dgSetFieldError(form, 'details', 'Event details must be at least 20 characters.'); valid = false; }
-    if (!form.terms.checked) { dgSetFieldError(form, 'terms', 'Please agree to the booking terms.'); valid = false; }
+    if (!values.serviceType) fail('serviceType', 'Please select a service type.');
+    if (!values.packageName) fail('packageName', 'Please select a package.');
+    if (!values.eventDate) fail('eventDate', 'Event date is required.');
+    else if (dgIsPastDate(values.eventDate)) fail('eventDate', 'Event date cannot be in the past.');
+    if (!values.eventTime) fail('eventTime', 'Event time is required.');
+    if (!values.location) fail('location', 'Event location is required.');
+    else if (values.location.length < 5) fail('location', 'Event location must be at least 5 characters.');
+    else if (values.location.length > 120) fail('location', 'Event location must not exceed 120 characters.');
+    if (!values.budget) fail('budget', 'Please select a budget range.');
+    if (!values.contactNumber) fail('contactNumber', 'Contact number is required.');
+    else if (!/^\d+$/.test(values.contactNumber)) fail('contactNumber', 'Contact number can contain numbers only.');
+    else if (!/^09\d{9}$/.test(values.contactNumber)) fail('contactNumber', 'Contact number must be 11 digits and start with 09.');
+    if (!values.details) fail('details', 'Event details are required.');
+    else if (values.details.length < 20) fail('details', 'Event details must be at least 20 characters.');
+    else if (values.details.length > 500) fail('details', 'Event details must not exceed 500 characters.');
+    if (values.notes.length > 300) fail('notes', 'Additional notes must not exceed 300 characters.');
+    if (values.preferredMeetingNotes.length > 250) fail('preferredMeetingNotes', 'Preferred meeting notes must not exceed 250 characters.');
+    if (!form.terms.checked) fail('terms', 'Please confirm that your inquiry is subject to schedule review and confirmation.');
 
-    if (!valid) return;
+    if (!valid) {
+      if (firstInvalidField) {
+        firstInvalidField.focus();
+        firstInvalidField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
+    }
 
     const submitBtn = form.querySelector('[type="submit"]');
     if (window.DGLoading) { DGLoading.show('Creating booking…'); DGLoading.disableButton(submitBtn); }
@@ -1982,7 +2128,8 @@ function dgSetupBookingForm() {
     dgNotifyClient(booking, 'Booking request submitted', `Your booking request ${booking.id} has been received and is ready for review.`, 'booking');
     dgNotifyAdmin('New booking request', `${booking.clientName} submitted a booking request for ${booking.serviceType}.`, 'booking', booking.id);
     dgSetFlash('Your booking request has been submitted. DG Film Co. will review your details and update your project status soon.');
-    window.location.href = 'my-bookings.html';
+    if (window.DGLoading) { DGLoading.hide(); DGLoading.enableButton(submitBtn); }
+    dgOpenBookingSuccessModal();
   });
 }
 
@@ -2177,7 +2324,9 @@ function dgRenderBookingDetails() {
     if (!receiptInput) return;
     const modal = receiptInput.closest('[data-payment-modal]');
     const hint = modal?.querySelector('[data-modal-receipt-hint]');
+    const fileName = modal?.querySelector('[data-modal-receipt-file-name]');
     const file = receiptInput.files[0];
+    if (fileName) fileName.textContent = file ? file.name : 'No file selected yet';
     if (!hint) return;
     if (!file) {
       hint.textContent = '';
@@ -2217,6 +2366,7 @@ function dgRenderBookingDetails() {
         if (modal) dgClosePaymentReceiptModal(modal);
         dgPaymentReceiptFeedback = 'Receipt submitted for admin verification.';
         dgRenderBookingDetails();
+        dgOpenReceiptSuccessModal(result.booking);
       } else if (result.message) {
         dgSetFieldError(form, 'amountPaid', result.message);
       }

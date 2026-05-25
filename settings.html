@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Settings | DG Film Co.</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="admin-page admin-settings-page">
+  <header class="site-header dashboard-header">
+    <a class="logo" href="admin-dashboard.html">DG Film Co.</a>
+    <button class="menu-toggle" aria-label="Open navigation">Menu</button>
+    <nav class="nav-links">
+      <a href="admin-dashboard.html">Dashboard</a>
+      <a href="manage-bookings.html">Bookings</a>
+      <a href="manage-inquiries.html">Inquiries</a>
+      <a href="payment-verification.html">Payments</a>
+      <a href="manage-users.html">Users</a>
+      <a href="manage-services.html">Services</a>
+      <a href="manage-pricing.html">Pricing</a>
+      <a href="settings.html" class="active">Settings</a>
+      <a href="reports.html">Reports</a>
+      <button type="button" class="nav-button" data-logout>Logout</button>
+    </nav>
+  </header>
+
+  <main class="page-main dashboard-main">
+    <section class="dashboard-hero">
+      <p class="eyebrow">ADMIN SETTINGS</p>
+      <h1>Settings</h1>
+      <p>Manage payment instructions, portfolio display, and studio contact details.</p>
+    </section>
+
+    <section class="section dashboard-section settings-overview" aria-label="Settings overview">
+      <article class="settings-overview-card">
+        <span>Payment Methods</span>
+        <strong id="settingsPaymentOverview">0 active</strong>
+      </article>
+      <article class="settings-overview-card">
+        <span>Portfolio Thumbnails</span>
+        <strong>9 categories</strong>
+      </article>
+      <article class="settings-overview-card">
+        <span>Studio Contact</span>
+        <strong id="settingsContactOverview">Configured</strong>
+      </article>
+      <article class="settings-overview-card">
+        <span>About Page</span>
+        <strong>Editable</strong>
+      </article>
+      <article class="settings-overview-card">
+        <span>Booking Defaults</span>
+        <strong id="settingsBookingOverview">50% down payment</strong>
+      </article>
+    </section>
+
+    <section class="section dashboard-section settings-tab-shell" aria-label="Settings sections">
+      <div class="settings-tab-list" role="tablist" aria-label="Settings navigation">
+        <button type="button" class="settings-tab is-active" id="settingsTabPayment" role="tab" aria-selected="true" aria-controls="payment-settings" data-settings-tab="payment">Payment</button>
+        <button type="button" class="settings-tab" id="settingsTabPortfolio" role="tab" aria-selected="false" aria-controls="portfolio-settings" data-settings-tab="portfolio">Portfolio</button>
+        <button type="button" class="settings-tab" id="settingsTabContact" role="tab" aria-selected="false" aria-controls="studio-settings" data-settings-tab="contact">Contact</button>
+        <button type="button" class="settings-tab" id="settingsTabAbout" role="tab" aria-selected="false" aria-controls="about-page-settings" data-settings-tab="about">About Page</button>
+        <button type="button" class="settings-tab" id="settingsTabBooking" role="tab" aria-selected="false" aria-controls="booking-defaults" data-settings-tab="booking">Booking Defaults</button>
+      </div>
+    </section>
+
+    <section class="section dashboard-section settings-section" id="payment-settings" aria-labelledby="paymentSettingsTitle" role="tabpanel" aria-labelledby="settingsTabPayment" data-settings-panel="payment">
+      <div class="section-heading">
+        <p class="eyebrow">Payment Settings</p>
+        <h2 id="paymentSettingsTitle">Payment instructions clients will see.</h2>
+        <p class="muted-text">Manage accepted methods and account details without changing payment verification records.</p>
+        <p class="payment-settings-summary" id="paymentSettingsSummary">No payment details set yet.</p>
+      </div>
+      <div class="payment-settings-manager settings-inline-manager">
+        <div class="payment-settings-manager-header">
+          <strong>Accepted methods</strong>
+          <button class="btn primary small" type="button" id="addPaymentSettingsBtn">+ Add Payment Method</button>
+        </div>
+        <div class="payment-settings-list" id="paymentSettingsList"></div>
+        <div id="paymentSettingsMessage" class="form-message" aria-live="polite"></div>
+      </div>
+      <form class="admin-crud-modal-form admin-payment-settings-form settings-inline-form" id="paymentSettingsForm" novalidate hidden>
+        <div class="admin-crud-modal-body">
+          <h3 id="paymentSettingsFormTitle">Add Payment Method</h3>
+          <label>Payment Method
+            <select name="methodType" required>
+              <option value="">Choose a payment method</option>
+              <option value="GCash">GCash</option>
+              <option value="Bank Transfer">Bank Transfer</option>
+              <option value="Cash / On-site Payment">Cash / On-site Payment</option>
+              <option value="Other">Other</option>
+            </select>
+            <span class="field-error" data-error-for="methodType"></span>
+          </label>
+          <div class="form-grid payment-settings-method-fields" data-payment-fields="GCash" hidden>
+            <label>GCash Account Name<input type="text" name="gcashAccountName" placeholder="Enter account name" /></label>
+            <label>GCash Number<input type="text" name="gcashNumber" placeholder="Enter GCash number" /></label>
+            <label class="wide">GCash Instructions / Reminder
+              <textarea name="gcashInstructions" rows="3" placeholder="Example: Send payment to the GCash number above and upload the receipt."></textarea>
+            </label>
+          </div>
+          <div class="form-grid payment-settings-method-fields" data-payment-fields="Bank Transfer" hidden>
+            <label>Bank Name<input type="text" name="bankName" placeholder="Enter bank name" /></label>
+            <label>Bank Account Name<input type="text" name="bankAccountName" placeholder="Enter account name" /></label>
+            <label>Bank Account Number<input type="text" name="bankAccountNumber" placeholder="Enter account number" /></label>
+            <label class="wide">Bank Transfer Instructions / Reminder
+              <textarea name="bankInstructions" rows="3" placeholder="Example: Transfer to the account above and upload the transaction receipt."></textarea>
+            </label>
+          </div>
+          <div class="payment-settings-method-fields" data-payment-fields="Cash / On-site Payment" hidden>
+            <label>Cash / On-site Payment Instructions / Reminder
+              <textarea name="cashInstructions" rows="3" placeholder="Example: Pay during the scheduled meeting or on the event day."></textarea>
+            </label>
+          </div>
+          <div class="form-grid payment-settings-method-fields" data-payment-fields="Other" hidden>
+            <label>Other Payment Method Name<input type="text" name="otherMethodName" placeholder="Enter payment method name" /></label>
+            <label>Other Payment Instructions / Reminder<textarea name="otherInstructions" rows="3" placeholder="Share the instructions clients need."></textarea></label>
+          </div>
+        </div>
+        <div class="admin-crud-modal-actions">
+          <button class="btn ghost" type="button" id="cancelPaymentSettingsBtn">Cancel</button>
+          <button class="btn primary" type="submit" id="savePaymentSettingsBtn">Save Payment Method</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="section dashboard-section settings-section" id="portfolio-settings" aria-labelledby="portfolioSettingsTitle" role="tabpanel" aria-labelledby="settingsTabPortfolio" data-settings-panel="portfolio" hidden>
+      <div class="section-heading">
+        <p class="eyebrow">Portfolio Settings</p>
+        <h2 id="portfolioSettingsTitle">Photo Highlight thumbnail positions.</h2>
+        <p class="muted-text">Adjust how each official category image is cropped on the Work page.</p>
+      </div>
+      <div class="photo-highlight-admin-grid" id="photoHighlightSettingsGrid"></div>
+      <div class="photo-highlight-admin-actions">
+        <button class="btn ghost" type="button" id="resetPhotoHighlightSettingsBtn">Reset Defaults</button>
+        <button class="btn primary" type="button" id="savePhotoHighlightSettingsBtn">Save All Thumbnail Positions</button>
+      </div>
+    </section>
+
+    <section class="section dashboard-section settings-section" id="studio-settings" aria-labelledby="studioSettingsTitle" role="tabpanel" aria-labelledby="settingsTabContact" data-settings-panel="contact" hidden>
+      <div class="section-heading">
+        <p class="eyebrow">Studio Contact Settings</p>
+        <h2 id="studioSettingsTitle">Default contact details.</h2>
+        <p class="muted-text">Used as fallback project contact information when a booking has no assigned contact yet.</p>
+      </div>
+      <form class="settings-form" id="studioSettingsForm">
+        <div id="studioSettingsMessage" class="form-message" aria-live="polite"></div>
+        <div class="form-grid">
+          <label>Studio Email<input name="studioEmail" type="email" /></label>
+          <label>Studio Phone Number<input name="studioPhoneNumber" /></label>
+          <label>Facebook Page<input name="facebookPage" /></label>
+          <label>Service Area<input name="serviceArea" /></label>
+          <label>Default Project Contact Name<input name="defaultProjectContactName" /></label>
+          <label>Default Project Contact Role<input name="defaultProjectContactRole" /></label>
+          <label>Default Project Contact Number<input name="defaultProjectContactNumber" /></label>
+          <label>Default Project Contact Email<input name="defaultProjectContactEmail" type="email" /></label>
+        </div>
+        <div class="settings-actions">
+          <button class="btn primary" type="submit">Save Studio Contact Settings</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="section dashboard-section settings-section" id="about-page-settings" aria-labelledby="aboutSettingsTitle" role="tabpanel" aria-labelledby="settingsTabAbout" data-settings-panel="about" hidden>
+      <div class="section-heading">
+        <p class="eyebrow">About Page Settings</p>
+        <h2 id="aboutSettingsTitle">About page content.</h2>
+        <p class="muted-text">Update the public About page headline, studio description, and highlight stats.</p>
+      </div>
+      <form class="settings-form" id="aboutSettingsForm">
+        <div id="aboutSettingsMessage" class="form-message" aria-live="polite"></div>
+        <div class="form-grid">
+          <label>About Label<input name="label" /></label>
+          <label class="wide">Main Headline<textarea name="headline" rows="3"></textarea></label>
+          <label class="wide">Studio Description Paragraph 1<textarea name="descriptionOne" rows="3"></textarea></label>
+          <label class="wide">Studio Description Paragraph 2<textarea name="descriptionTwo" rows="3"></textarea></label>
+          <label>Stat 1 Value<input name="statOneValue" /></label>
+          <label>Stat 1 Label<input name="statOneLabel" /></label>
+          <label>Stat 2 Value<input name="statTwoValue" /></label>
+          <label>Stat 2 Label<input name="statTwoLabel" /></label>
+          <label>Stat 3 Value<input name="statThreeValue" /></label>
+          <label>Stat 3 Label<input name="statThreeLabel" /></label>
+        </div>
+        <div class="settings-actions">
+          <button class="btn primary" type="submit">Save About Page Settings</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="section dashboard-section settings-section" id="booking-defaults" aria-labelledby="bookingDefaultsTitle" role="tabpanel" aria-labelledby="settingsTabBooking" data-settings-panel="booking" hidden>
+      <div class="section-heading">
+        <p class="eyebrow">Booking Defaults</p>
+        <h2 id="bookingDefaultsTitle">Invoice and reminder defaults.</h2>
+        <p class="muted-text">New flows can read these values while existing invoices keep their stored amounts and reminders.</p>
+      </div>
+      <form class="settings-form" id="bookingSettingsForm">
+        <div id="bookingSettingsMessage" class="form-message" aria-live="polite"></div>
+        <div class="form-grid">
+          <label>Minimum Down Payment Percentage<input name="minimumDownPaymentPercentage" type="number" min="0" max="100" /></label>
+          <label class="wide">Default Invoice Reminder<textarea name="defaultInvoiceReminder" rows="3"></textarea></label>
+          <label class="wide">Default Payment Reminder<textarea name="defaultPaymentReminder" rows="3"></textarea></label>
+        </div>
+        <div class="settings-actions">
+          <button class="btn primary" type="submit">Save Booking Defaults</button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <footer class="footer"><p>&copy; 2026 DG Film Co.</p></footer>
+  <script src="js/data.js"></script>
+  <script src="js/loading.js"></script>
+  <script src="js/script.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/rbac.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/confirmations.js"></script>
+  <script src="js/manage.js"></script>
+</body>
+</html>

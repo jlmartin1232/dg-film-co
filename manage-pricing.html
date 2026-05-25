@@ -11,13 +11,14 @@
     <a class="logo" href="admin-dashboard.html">DG Film Co.</a>
     <button class="menu-toggle" aria-label="Open navigation">Menu</button>
     <nav class="nav-links">
-      <a href="admin-dashboard.html">Admin Dashboard</a>
-      <a href="manage-bookings.html">Manage Bookings</a>
+      <a href="admin-dashboard.html">Dashboard</a>
+      <a href="manage-bookings.html">Bookings</a>
       <a href="manage-inquiries.html">Inquiries</a>
-      <a href="payment-verification.html">Payment Verification</a>
-      <a href="manage-users.html">Manage Users</a>
-      <a href="manage-services.html">Manage Services</a>
-      <a href="manage-pricing.html" class="active">Manage Pricing</a>
+      <a href="payment-verification.html">Payments</a>
+      <a href="manage-users.html">Users</a>
+      <a href="manage-services.html">Services</a>
+      <a href="manage-pricing.html" class="active">Pricing</a>
+      <a href="settings.html">Settings</a>
       <a href="reports.html">Reports</a>
       <button type="button" class="nav-button" data-logout>Logout</button>
     </nav>
@@ -35,16 +36,6 @@
       <article class="dashboard-card admin-pricing-stat"><span>Active Packages</span><strong id="activePackagesCount">0</strong></article>
       <article class="dashboard-card admin-pricing-stat"><span>Inactive Packages</span><strong id="inactivePackagesCount">0</strong></article>
       <article class="dashboard-card admin-pricing-stat"><span>Services with Packages</span><strong id="servicesWithPackagesCount">0</strong></article>
-    </section>
-
-    <section class="section dashboard-section admin-payment-settings-card" aria-labelledby="paymentSettingsTitle">
-      <div class="admin-payment-settings-copy">
-        <p class="eyebrow">PAYMENT INSTRUCTIONS</p>
-        <h2 id="paymentSettingsTitle">Payment Details</h2>
-        <p>Set the payment methods clients will see before uploading a receipt.</p>
-        <p class="payment-settings-summary" id="paymentSettingsSummary">No payment details set yet.</p>
-      </div>
-      <button class="btn primary" type="button" id="openPaymentSettingsBtn">Manage Payment Details</button>
     </section>
 
     <section class="section dashboard-section admin-pricing-section" aria-label="Packages by service">
@@ -67,70 +58,6 @@
       <div id="pricingList" class="admin-pricing-accordion"></div>
     </section>
   </main>
-
-  <div class="admin-crud-modal" id="paymentSettingsPanel" hidden>
-    <div class="admin-crud-modal-panel payment-settings-modal-panel" role="dialog" aria-modal="true" aria-labelledby="paymentSettingsPanelTitle">
-      <div class="admin-crud-modal-header">
-        <div>
-          <p class="eyebrow">Payment instructions</p>
-          <h2 id="paymentSettingsPanelTitle">Payment Details</h2>
-          <p class="muted-text">Manage the payment methods and details clients see before uploading a receipt.</p>
-        </div>
-        <button class="modal-close" type="button" id="closePaymentSettingsBtn" aria-label="Close">&times;</button>
-      </div>
-      <div class="payment-settings-manager">
-        <div class="payment-settings-manager-header">
-          <strong>Accepted methods</strong>
-          <button class="btn primary small" type="button" id="addPaymentSettingsBtn">+ Add Payment Method</button>
-        </div>
-        <div class="payment-settings-list" id="paymentSettingsList"></div>
-        <div id="paymentSettingsMessage" class="form-message" aria-live="polite"></div>
-      </div>
-      <form class="admin-crud-modal-form admin-payment-settings-form" id="paymentSettingsForm" novalidate hidden>
-        <div class="admin-crud-modal-body">
-          <h3 id="paymentSettingsFormTitle">Add Payment Method</h3>
-          <label>Payment Method
-            <select name="methodType" required>
-              <option value="">Choose a payment method</option>
-              <option value="GCash">GCash</option>
-              <option value="Bank Transfer">Bank Transfer</option>
-              <option value="Cash / On-site Payment">Cash / On-site Payment</option>
-              <option value="Other">Other</option>
-            </select>
-            <span class="field-error" data-error-for="methodType"></span>
-          </label>
-          <div class="form-grid payment-settings-method-fields" data-payment-fields="GCash" hidden>
-            <label>GCash Account Name<input type="text" name="gcashAccountName" placeholder="Enter account name" /></label>
-            <label>GCash Number<input type="text" name="gcashNumber" placeholder="Enter GCash number" /></label>
-            <label class="wide">GCash Instructions / Reminder
-              <textarea name="gcashInstructions" rows="3" placeholder="Example: Send payment to the GCash number above and upload the receipt."></textarea>
-            </label>
-          </div>
-          <div class="form-grid payment-settings-method-fields" data-payment-fields="Bank Transfer" hidden>
-            <label>Bank Name<input type="text" name="bankName" placeholder="Enter bank name" /></label>
-            <label>Bank Account Name<input type="text" name="bankAccountName" placeholder="Enter account name" /></label>
-            <label>Bank Account Number<input type="text" name="bankAccountNumber" placeholder="Enter account number" /></label>
-            <label class="wide">Bank Transfer Instructions / Reminder
-              <textarea name="bankInstructions" rows="3" placeholder="Example: Transfer to the account above and upload the transaction receipt."></textarea>
-            </label>
-          </div>
-          <div class="payment-settings-method-fields" data-payment-fields="Cash / On-site Payment" hidden>
-            <label>Cash / On-site Payment Instructions / Reminder
-              <textarea name="cashInstructions" rows="3" placeholder="Example: Pay during the scheduled meeting or on the event day."></textarea>
-            </label>
-          </div>
-          <div class="form-grid payment-settings-method-fields" data-payment-fields="Other" hidden>
-            <label>Other Payment Method Name<input type="text" name="otherMethodName" placeholder="Enter payment method name" /></label>
-            <label>Other Payment Instructions / Reminder<textarea name="otherInstructions" rows="3" placeholder="Share the instructions clients need."></textarea></label>
-          </div>
-        </div>
-        <div class="admin-crud-modal-actions">
-          <button class="btn ghost" type="button" id="cancelPaymentSettingsBtn">Cancel</button>
-          <button class="btn primary" type="submit" id="savePaymentSettingsBtn">Save Payment Method</button>
-        </div>
-      </form>
-    </div>
-  </div>
 
   <div class="admin-crud-modal" id="pricingFormPanel" hidden>
     <div class="admin-crud-modal-panel" role="dialog" aria-modal="true" aria-labelledby="pricingFormTitle">

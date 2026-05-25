@@ -1,4 +1,44 @@
 const contactInquiryForm = document.getElementById('contactInquiryForm');
+const DG_CONTACT_STUDIO_DEFAULTS = {
+  studioEmail: 'dgfilmco.projects@gmail.com',
+  studioPhoneNumber: '09123456789',
+  facebookPage: 'DG Film Co.',
+  serviceArea: 'Metro Manila and nearby locations'
+};
+
+function dgContactStudioSettings() {
+  let saved = {};
+  try {
+    saved = window.DGData
+      ? DGData.getJson('dgStudioSettings', {})
+      : JSON.parse(localStorage.getItem('dgStudioSettings') || '{}');
+  } catch (error) {
+    saved = {};
+  }
+  return {
+    studioEmail: String(saved.studioEmail || saved.email || DG_CONTACT_STUDIO_DEFAULTS.studioEmail).trim(),
+    studioPhoneNumber: String(saved.studioPhoneNumber || saved.studioPhone || saved.phoneNumber || saved.phone || DG_CONTACT_STUDIO_DEFAULTS.studioPhoneNumber).trim(),
+    facebookPage: String(saved.facebookPage || saved.facebook || DG_CONTACT_STUDIO_DEFAULTS.facebookPage).trim(),
+    serviceArea: String(saved.serviceArea || saved.area || DG_CONTACT_STUDIO_DEFAULTS.serviceArea).trim()
+  };
+}
+
+function dgRenderContactStudioSettings() {
+  const settings = dgContactStudioSettings();
+  const email = document.getElementById('contactStudioEmail');
+  const phone = document.getElementById('contactStudioPhone');
+  const facebook = document.getElementById('contactStudioFacebook');
+  const serviceArea = document.getElementById('contactStudioServiceArea');
+  if (email) {
+    email.textContent = settings.studioEmail;
+    email.href = `mailto:${settings.studioEmail}`;
+  }
+  if (phone) phone.textContent = settings.studioPhoneNumber;
+  if (facebook) facebook.textContent = settings.facebookPage;
+  if (serviceArea) serviceArea.textContent = settings.serviceArea;
+}
+
+dgRenderContactStudioSettings();
 
 if (contactInquiryForm) {
   const successMessage = document.getElementById('contactFormSuccess');

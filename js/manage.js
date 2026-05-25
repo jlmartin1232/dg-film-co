@@ -68,6 +68,35 @@ function dgMPayments() { return dgMGet(DGData.keys.payments, []); }
 const DG_PAYMENT_SETTINGS_KEY = 'dgPaymentSettings';
 const DG_PAYMENT_METHOD_OPTIONS = ['GCash', 'Bank Transfer', 'Cash / On-site Payment', 'Other'];
 const DG_PHOTO_HIGHLIGHT_SETTINGS_KEY = 'dgPhotoHighlightSettings';
+const DG_STUDIO_SETTINGS_KEY = 'dgStudioSettings';
+const DG_BOOKING_SETTINGS_KEY = 'dgBookingSettings';
+const DG_ABOUT_SETTINGS_KEY = 'dgAboutSettings';
+const DG_STUDIO_SETTINGS_DEFAULTS = {
+  studioEmail: 'dgfilmco.projects@gmail.com',
+  studioPhoneNumber: '09123456789',
+  facebookPage: 'DG Film Co.',
+  serviceArea: 'Metro Manila and nearby locations',
+  defaultProjectContactName: 'Mark Dela Cruz',
+  defaultProjectContactRole: 'Project Coordinator',
+  defaultProjectContactNumber: '09123456789',
+  defaultProjectContactEmail: 'mark.dgfilmco@gmail.com'
+};
+const DG_BOOKING_SETTINGS_DEFAULTS = {
+  minimumDownPaymentPercentage: 50,
+  defaultInvoiceReminder: 'Remaining balance must be settled before the event date.',
+  defaultPaymentReminder: 'Please make sure your receipt shows the paid amount, date, and reference number.'
+};
+const DG_ABOUT_SETTINGS_DEFAULTS = {
+  label: 'ABOUT THE STUDIO',
+  headline: 'We create cinematic photo and video stories for events, brands, and creative projects.',
+  descriptionOne: 'DG Film Co. creates photo and video coverage for weddings, celebrations, brands, restaurants, nightlife, artists, and milestone events.',
+  descriptionTwo: 'We focus on thoughtful planning, cinematic visuals, and a smooth experience from first inquiry to final delivery.',
+  stats: [
+    { value: '9', label: 'Signature services' },
+    { value: '24\u201348h', label: 'Typical inquiry response' },
+    { value: 'Full-service', label: 'Creative direction' }
+  ]
+};
 const DG_PHOTO_HIGHLIGHT_CATEGORIES = [
   'Wedding Photo/Video',
   'Debut / Birthday Coverage',
@@ -286,16 +315,26 @@ function dgMSetupPaymentSettings() {
     if (type === 'Bank Transfer') method = { ...method, bankName: form.elements.bankName.value.trim(), accountName: form.elements.bankAccountName.value.trim(), accountNumber: form.elements.bankAccountNumber.value.trim(), instructions: form.elements.bankInstructions.value.trim() };
     if (type === 'Cash / On-site Payment') method = { ...method, instructions: form.elements.cashInstructions.value.trim() };
     if (type === 'Other') method = { ...method, methodName: form.elements.otherMethodName.value.trim(), instructions: form.elements.otherInstructions.value.trim() };
-    const existingIndex = settings.methods.findIndex((item) => item.type === type);
-    if (existingIndex >= 0) settings.methods[existingIndex] = method;
-    else settings.methods.push(method);
-    settings.methods.sort((first, second) => DG_PAYMENT_METHOD_OPTIONS.indexOf(first.type) - DG_PAYMENT_METHOD_OPTIONS.indexOf(second.type));
-    settings.updatedAt = new Date().toISOString();
-    dgMSave(DG_PAYMENT_SETTINGS_KEY, settings);
-    renderSummary(settings);
-    form.hidden = true;
-    showMessage('Payment method saved.');
-    clearForm();
+    dgMConfirmAction({
+      title: 'Save changes?',
+      message: 'Are you sure you want to save these settings?',
+      confirmText: 'Save Changes',
+      cancelText: 'Cancel',
+      variant: 'warning',
+      onConfirm: () => {
+        const existingIndex = settings.methods.findIndex((item) => item.type === type);
+        if (existingIndex >= 0) settings.methods[existingIndex] = method;
+        else settings.methods.push(method);
+        settings.methods.sort((first, second) => DG_PAYMENT_METHOD_OPTIONS.indexOf(first.type) - DG_PAYMENT_METHOD_OPTIONS.indexOf(second.type));
+        settings.updatedAt = new Date().toISOString();
+        dgMSave(DG_PAYMENT_SETTINGS_KEY, settings);
+        renderSummary(settings);
+        dgMSetupSettingsOverview();
+        form.hidden = true;
+        showMessage('Settings saved.');
+        clearForm();
+      }
+    });
   });
 
   list?.addEventListener('click', (event) => {
@@ -319,6 +358,7 @@ function dgMSetupPaymentSettings() {
         settings.updatedAt = new Date().toISOString();
         dgMSave(DG_PAYMENT_SETTINGS_KEY, settings);
         renderSummary(settings);
+        dgMSetupSettingsOverview();
         showMessage('Payment method removed.');
       }
     });
@@ -859,18 +899,20 @@ function dgMSetupPhotoHighlightSettings() {
   let settings = dgMPhotoHighlightSettings();
 
   const showSuccessModal = (title, message) => {
-    if (window.confirmAction) {
-      window.confirmAction({
-        title,
-        message,
-        confirmText: 'Done',
-        cancelText: null,
-        variant: 'success',
-        onConfirm: () => {}
-      });
-      return;
-    }
-    window.alert(title);
+    window.setTimeout(() => {
+      if (window.confirmAction) {
+        window.confirmAction({
+          title,
+          message,
+          confirmText: 'Done',
+          cancelText: null,
+          variant: 'success',
+          onConfirm: () => {}
+        });
+        return;
+      }
+      window.alert(title);
+    }, 0);
   };
 
   const updateCardPreview = (card) => {
@@ -927,20 +969,239 @@ function dgMSetupPhotoHighlightSettings() {
         y: dgMClampPercent(card.querySelector('[data-photo-highlight-y]')?.value)
       };
     });
-    dgMSave(DG_PHOTO_HIGHLIGHT_SETTINGS_KEY, next);
-    settings = dgMPhotoHighlightSettings(next);
-    render();
-    showSuccessModal('Thumbnail positions saved.', 'Your Photo Highlight thumbnail focal points have been saved.');
+    dgMConfirmAction({
+      title: 'Save changes?',
+      message: 'Are you sure you want to save these settings?',
+      confirmText: 'Save Changes',
+      cancelText: 'Cancel',
+      variant: 'warning',
+      onConfirm: () => {
+        dgMSave(DG_PHOTO_HIGHLIGHT_SETTINGS_KEY, next);
+        settings = dgMPhotoHighlightSettings(next);
+        render();
+        showSuccessModal('Thumbnail positions saved.', 'Your Photo Highlight thumbnail focal points have been saved.');
+      }
+    });
   });
 
   resetButton?.addEventListener('click', () => {
-    dgMSave(DG_PHOTO_HIGHLIGHT_SETTINGS_KEY, DG_PHOTO_HIGHLIGHT_DEFAULTS);
-    settings = dgMPhotoHighlightSettings(DG_PHOTO_HIGHLIGHT_DEFAULTS);
-    render();
-    showSuccessModal('Thumbnail positions reset to defaults.', 'The Photo Highlight thumbnail focal points are back to the default positions.');
+    dgMConfirmAction({
+      title: 'Reset thumbnail positions?',
+      message: 'This will restore the default photo thumbnail positions.',
+      confirmText: 'Reset Defaults',
+      cancelText: 'Cancel',
+      variant: 'danger',
+      onConfirm: () => {
+        dgMSave(DG_PHOTO_HIGHLIGHT_SETTINGS_KEY, DG_PHOTO_HIGHLIGHT_DEFAULTS);
+        settings = dgMPhotoHighlightSettings(DG_PHOTO_HIGHLIGHT_DEFAULTS);
+        render();
+        showSuccessModal('Thumbnail positions reset to defaults.', 'The Photo Highlight thumbnail focal points are back to the default positions.');
+      }
+    });
   });
 
   render();
+}
+
+function dgMNormalizeStudioSettings(settings) {
+  const saved = settings && typeof settings === 'object' ? settings : {};
+  return Object.keys(DG_STUDIO_SETTINGS_DEFAULTS).reduce((next, key) => {
+    next[key] = String(saved[key] || DG_STUDIO_SETTINGS_DEFAULTS[key]).trim();
+    return next;
+  }, {});
+}
+
+function dgMNormalizeBookingSettings(settings) {
+  const saved = settings && typeof settings === 'object' ? settings : {};
+  const percent = Number(saved.minimumDownPaymentPercentage);
+  return {
+    minimumDownPaymentPercentage: Number.isFinite(percent) ? Math.min(100, Math.max(0, Math.round(percent))) : DG_BOOKING_SETTINGS_DEFAULTS.minimumDownPaymentPercentage,
+    defaultInvoiceReminder: String(saved.defaultInvoiceReminder || DG_BOOKING_SETTINGS_DEFAULTS.defaultInvoiceReminder).trim(),
+    defaultPaymentReminder: String(saved.defaultPaymentReminder || DG_BOOKING_SETTINGS_DEFAULTS.defaultPaymentReminder).trim()
+  };
+}
+
+function dgMNormalizeAboutSettings(settings) {
+  const saved = settings && typeof settings === 'object' ? settings : {};
+  const savedStats = Array.isArray(saved.stats) ? saved.stats : [];
+  return {
+    label: String(saved.label || DG_ABOUT_SETTINGS_DEFAULTS.label).trim(),
+    headline: String(saved.headline || DG_ABOUT_SETTINGS_DEFAULTS.headline).trim(),
+    descriptionOne: String(saved.descriptionOne || DG_ABOUT_SETTINGS_DEFAULTS.descriptionOne).trim(),
+    descriptionTwo: String(saved.descriptionTwo || DG_ABOUT_SETTINGS_DEFAULTS.descriptionTwo).trim(),
+    stats: DG_ABOUT_SETTINGS_DEFAULTS.stats.map((fallback, index) => {
+      const stat = savedStats[index] && typeof savedStats[index] === 'object' ? savedStats[index] : {};
+      return {
+        value: String(stat.value || fallback.value).trim(),
+        label: String(stat.label || fallback.label).trim()
+      };
+    })
+  };
+}
+
+function dgMSettingsMessage(element, text, type = 'success') {
+  if (!element) return;
+  element.textContent = text || '';
+  element.className = text ? `form-message ${type}` : 'form-message';
+}
+
+function dgMSetupAboutSettings() {
+  const form = document.getElementById('aboutSettingsForm');
+  if (!form) return;
+  if (!dgManageAdmin()) return;
+  const message = document.getElementById('aboutSettingsMessage');
+  const settings = dgMNormalizeAboutSettings(dgMGet(DG_ABOUT_SETTINGS_KEY, {}));
+  form.elements.label.value = settings.label;
+  form.elements.headline.value = settings.headline;
+  form.elements.descriptionOne.value = settings.descriptionOne;
+  form.elements.descriptionTwo.value = settings.descriptionTwo;
+  form.elements.statOneValue.value = settings.stats[0].value;
+  form.elements.statOneLabel.value = settings.stats[0].label;
+  form.elements.statTwoValue.value = settings.stats[1].value;
+  form.elements.statTwoLabel.value = settings.stats[1].label;
+  form.elements.statThreeValue.value = settings.stats[2].value;
+  form.elements.statThreeLabel.value = settings.stats[2].label;
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const next = dgMNormalizeAboutSettings({
+      label: form.elements.label.value,
+      headline: form.elements.headline.value,
+      descriptionOne: form.elements.descriptionOne.value,
+      descriptionTwo: form.elements.descriptionTwo.value,
+      stats: [
+        { value: form.elements.statOneValue.value, label: form.elements.statOneLabel.value },
+        { value: form.elements.statTwoValue.value, label: form.elements.statTwoLabel.value },
+        { value: form.elements.statThreeValue.value, label: form.elements.statThreeLabel.value }
+      ]
+    });
+    dgMConfirmAction({
+      title: 'Save changes?',
+      message: 'Are you sure you want to save these settings?',
+      confirmText: 'Save Changes',
+      cancelText: 'Cancel',
+      variant: 'warning',
+      onConfirm: () => {
+        dgMSave(DG_ABOUT_SETTINGS_KEY, next);
+        dgMSettingsMessage(message, 'About page settings saved.');
+      }
+    });
+  });
+}
+
+function dgMSetupStudioSettings() {
+  const form = document.getElementById('studioSettingsForm');
+  if (!form) return;
+  if (!dgManageAdmin()) return;
+  const message = document.getElementById('studioSettingsMessage');
+  const settings = dgMNormalizeStudioSettings(dgMGet(DG_STUDIO_SETTINGS_KEY, {}));
+  Object.entries(settings).forEach(([key, value]) => {
+    if (form.elements[key]) form.elements[key].value = value;
+  });
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const next = {};
+    Object.keys(DG_STUDIO_SETTINGS_DEFAULTS).forEach((key) => {
+      next[key] = String(form.elements[key]?.value || DG_STUDIO_SETTINGS_DEFAULTS[key]).trim();
+    });
+    dgMConfirmAction({
+      title: 'Save changes?',
+      message: 'Are you sure you want to save these settings?',
+      confirmText: 'Save Changes',
+      cancelText: 'Cancel',
+      variant: 'warning',
+      onConfirm: () => {
+        dgMSave(DG_STUDIO_SETTINGS_KEY, dgMNormalizeStudioSettings(next));
+        dgMSetupSettingsOverview();
+        dgMSettingsMessage(message, 'Settings saved.');
+      }
+    });
+  });
+}
+
+function dgMSetupBookingSettings() {
+  const form = document.getElementById('bookingSettingsForm');
+  if (!form) return;
+  if (!dgManageAdmin()) return;
+  const message = document.getElementById('bookingSettingsMessage');
+  const settings = dgMNormalizeBookingSettings(dgMGet(DG_BOOKING_SETTINGS_KEY, {}));
+  form.elements.minimumDownPaymentPercentage.value = settings.minimumDownPaymentPercentage;
+  form.elements.defaultInvoiceReminder.value = settings.defaultInvoiceReminder;
+  form.elements.defaultPaymentReminder.value = settings.defaultPaymentReminder;
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const next = dgMNormalizeBookingSettings({
+      minimumDownPaymentPercentage: form.elements.minimumDownPaymentPercentage.value,
+      defaultInvoiceReminder: form.elements.defaultInvoiceReminder.value,
+      defaultPaymentReminder: form.elements.defaultPaymentReminder.value
+    });
+    dgMConfirmAction({
+      title: 'Save changes?',
+      message: 'Are you sure you want to save these settings?',
+      confirmText: 'Save Changes',
+      cancelText: 'Cancel',
+      variant: 'warning',
+      onConfirm: () => {
+        dgMSave(DG_BOOKING_SETTINGS_KEY, next);
+        dgMSetupSettingsOverview();
+        dgMSettingsMessage(message, 'Settings saved.');
+      }
+    });
+  });
+}
+
+function dgMSetupSettingsTabs() {
+  const tabs = Array.from(document.querySelectorAll('[data-settings-tab]'));
+  const panels = Array.from(document.querySelectorAll('[data-settings-panel]'));
+  if (!tabs.length || !panels.length) return;
+  const aliases = {
+    '#payment-settings': 'payment',
+    '#portfolio-settings': 'portfolio',
+    '#studio-settings': 'contact',
+    '#about-page-settings': 'about',
+    '#booking-defaults': 'booking'
+  };
+  const validTabs = new Set(tabs.map((tab) => tab.dataset.settingsTab));
+  const readHash = () => {
+    const hash = window.location.hash || '';
+    const normalized = hash.replace('#', '');
+    return aliases[hash] || (validTabs.has(normalized) ? normalized : 'payment');
+  };
+  const setActiveTab = (name, updateHash = true) => {
+    const activeName = validTabs.has(name) ? name : 'payment';
+    tabs.forEach((tab) => {
+      const active = tab.dataset.settingsTab === activeName;
+      tab.classList.toggle('is-active', active);
+      tab.setAttribute('aria-selected', String(active));
+    });
+    panels.forEach((panel) => {
+      panel.hidden = panel.dataset.settingsPanel !== activeName;
+    });
+    if (updateHash) history.replaceState(null, '', `#${activeName}`);
+  };
+  tabs.forEach((tab) => {
+    tab.addEventListener('click', () => setActiveTab(tab.dataset.settingsTab));
+  });
+  window.addEventListener('hashchange', () => setActiveTab(readHash(), false));
+  setActiveTab(readHash(), false);
+}
+
+function dgMSetupSettingsOverview() {
+  const paymentOverview = document.getElementById('settingsPaymentOverview');
+  const contactOverview = document.getElementById('settingsContactOverview');
+  const bookingOverview = document.getElementById('settingsBookingOverview');
+  if (!paymentOverview && !contactOverview && !bookingOverview) return;
+  const paymentSettings = dgMNormalizePaymentSettings(dgMGet(DG_PAYMENT_SETTINGS_KEY, null));
+  const studioSettings = dgMNormalizeStudioSettings(dgMGet(DG_STUDIO_SETTINGS_KEY, {}));
+  const bookingSettings = dgMNormalizeBookingSettings(dgMGet(DG_BOOKING_SETTINGS_KEY, {}));
+  if (paymentOverview) {
+    const count = paymentSettings.methods.length;
+    paymentOverview.textContent = `${count} active`;
+  }
+  if (contactOverview) {
+    const hasPrimaryContact = Boolean(studioSettings.studioEmail && studioSettings.studioPhoneNumber);
+    contactOverview.textContent = hasPrimaryContact ? 'Configured' : 'Needs setup';
+  }
+  if (bookingOverview) bookingOverview.textContent = `${bookingSettings.minimumDownPaymentPercentage}% down payment`;
 }
 
 function dgMPopulateServiceSelect(select) {
@@ -1369,10 +1630,15 @@ function dgMSetupReports() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  dgMSetupSettingsTabs();
+  dgMSetupSettingsOverview();
   dgMSetupUsers();
   dgMSetupServices();
   dgMSetupPhotoHighlightSettings();
   dgMSetupPricing();
   dgMSetupPaymentSettings();
+  dgMSetupStudioSettings();
+  dgMSetupAboutSettings();
+  dgMSetupBookingSettings();
   dgMSetupReports();
 });

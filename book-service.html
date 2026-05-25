@@ -37,13 +37,13 @@
             <p class="muted-text">Choose a service and package that fit your coverage needs. We can refine the final details together.</p>
           </div>
           <div class="form-grid">
-            <label>Service Type
-              <select name="serviceType"></select>
+            <label><span class="field-label">Service Type <span class="required-mark" aria-hidden="true">*</span></span>
+              <select name="serviceType" required></select>
               <span class="field-error" data-error-for="serviceType"></span>
             </label>
 
-            <label>Package
-              <select name="packageName"></select>
+            <label><span class="field-label">Package <span class="required-mark" aria-hidden="true">*</span></span>
+              <select name="packageName" required></select>
               <span class="field-error" data-error-for="packageName"></span>
             </label>
 
@@ -58,12 +58,12 @@
             </label>
 
             <label><span class="field-label">Event Location <span class="required-mark" aria-hidden="true">*</span></span>
-              <input type="text" name="location" placeholder="Venue, city, or full location" required />
+              <input type="text" name="location" placeholder="Venue, city, or full location" maxlength="120" required />
               <span class="field-error" data-error-for="location"></span>
             </label>
 
-            <label>Budget Range
-              <select name="budget">
+            <label><span class="field-label">Budget Range <span class="required-mark" aria-hidden="true">*</span></span>
+              <select name="budget" required>
                 <option value="">Choose a budget range</option>
                 <option value="Below PHP 15,000">Below PHP 15,000</option>
                 <option value="PHP 15,000 - PHP 30,000">PHP 15,000 - PHP 30,000</option>
@@ -74,18 +74,19 @@
             </label>
 
             <label><span class="field-label">Contact Number <span class="required-mark" aria-hidden="true">*</span></span>
-              <input type="tel" name="contactNumber" placeholder="09XXXXXXXXX or +639XXXXXXXXX" required />
+              <input type="text" name="contactNumber" placeholder="09XXXXXXXXX" inputmode="numeric" maxlength="11" pattern="[0-9]*" required />
               <span class="field-error" data-error-for="contactNumber"></span>
             </label>
           </div>
 
           <label><span class="field-label">Event Details <span class="required-mark" aria-hidden="true">*</span></span>
-            <textarea name="details" rows="5" placeholder="Describe the event, audience, mood, schedule, and final outputs you have in mind." required></textarea>
+            <textarea name="details" rows="5" maxlength="500" placeholder="Describe the event, audience, mood, schedule, and final outputs you have in mind." required></textarea>
             <span class="field-error" data-error-for="details"></span>
           </label>
 
           <label>Additional Notes <span class="optional">Optional</span>
-            <textarea name="notes" rows="4" placeholder="Any extra requests, visual references, or reminders."></textarea>
+            <textarea name="notes" rows="4" maxlength="300" placeholder="Any extra requests, visual references, or reminders."></textarea>
+            <span class="field-error" data-error-for="notes"></span>
           </label>
 
           <div class="profile-card-heading">
@@ -102,12 +103,13 @@
               </select>
             </label>
             <label>Preferred Meeting Notes <span class="optional">Optional</span>
-              <textarea name="preferredMeetingNotes" rows="3" placeholder="Example: Prefer online meeting after 5 PM, or in-person near Paranaque."></textarea>
+              <textarea name="preferredMeetingNotes" rows="3" maxlength="250" placeholder="Example: Prefer online meeting after 5 PM, or in-person near Paranaque."></textarea>
+              <span class="field-error" data-error-for="preferredMeetingNotes"></span>
             </label>
           </div>
 
           <label class="check-row">
-            <input type="checkbox" name="terms" />
+            <input type="checkbox" name="terms" required />
             <span>I understand that my inquiry is subject to schedule review and confirmation by DG Film Co.</span>
           </label>
           <span class="field-error field-error-alone" data-error-for="terms"></span>
@@ -143,6 +145,28 @@
       </div>
     </section>
   </main>
+
+  <div class="booking-success-modal" data-booking-success-modal hidden>
+    <section class="booking-success-panel" role="dialog" aria-modal="true" aria-labelledby="bookingSuccessTitle" aria-describedby="bookingSuccessDescription" tabindex="-1">
+      <p class="eyebrow">Project Request</p>
+      <h2 id="bookingSuccessTitle">Inquiry submitted.</h2>
+      <p id="bookingSuccessDescription">Thank you for submitting your project inquiry. DG Film Co. will review your event details, schedule, and selected package.</p>
+      <p class="booking-success-review"><strong>Expected review time</strong>Please expect an update within a few hours. You can check your My Projects page for status updates, and DG Film Co. may also contact you through your registered email or mobile number.</p>
+      <div class="booking-success-next">
+        <h3>Next steps</h3>
+        <ol>
+          <li>Our team reviews your inquiry.</li>
+          <li>We confirm the schedule and event details.</li>
+          <li>We update your request status in My Projects.</li>
+          <li>We may contact you through your registered email or mobile number for meeting details or next instructions.</li>
+        </ol>
+      </div>
+      <div class="booking-success-actions">
+        <a class="btn primary" href="my-bookings.html">View My Projects</a>
+        <a class="btn ghost" href="client-dashboard.html">Back to Dashboard</a>
+      </div>
+    </section>
+  </div>
 
   <footer class="footer"><p>&copy; 2026 DG Film Co.</p></footer>
   <script src="js/data.js"></script>

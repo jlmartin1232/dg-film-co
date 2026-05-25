@@ -17,44 +17,59 @@
         <article class="auth-card auth-slide-form auth-login-form">
           <p class="eyebrow">Account Access</p>
           <h2>Welcome back.</h2>
-          <p class="auth-copy">Log in to manage bookings, payments, meetings, and delivered files.</p>
+          <p class="auth-copy">Sign in to manage your bookings, payments, and project updates.</p>
 
           <form class="auth-form" id="loginForm" novalidate>
             <div id="loginMessage" class="form-message" aria-live="polite"></div>
             <label class="auth-field" for="loginEmail"><span class="field-label">Email address <span class="required-mark" aria-hidden="true">*</span></span>
               <input id="loginEmail" type="email" name="email" placeholder="Enter your Email" autocomplete="email" required />
+              <span class="field-error" data-auth-error="email"></span>
             </label>
             <label class="auth-field" for="loginPassword"><span class="field-label">Password <span class="required-mark" aria-hidden="true">*</span></span>
               <input id="loginPassword" type="password" name="password" placeholder="Enter your password" autocomplete="current-password" required />
+              <span class="field-error" data-auth-error="password"></span>
             </label>
             <button type="submit" class="btn primary full">Log in</button>
           </form>
         </article>
 
         <article class="auth-card auth-slide-form auth-register-form">
-          <p class="eyebrow">Client Account</p>
           <h2>Create your account.</h2>
-          <p class="auth-copy">Set up your DG Film Co. client portal for booking requests and project updates.</p>
+          <p class="auth-copy">Start your booking and keep track of your project with DG Film Co.</p>
 
           <form class="auth-form register-form" id="registerForm" novalidate>
             <div id="registerMessage" class="form-message" aria-live="polite"></div>
             <div class="register-fields">
               <label class="auth-field" for="registerName"><span class="field-label">Full Name <span class="required-mark" aria-hidden="true">*</span></span>
                 <input id="registerName" type="text" name="fullName" placeholder="Enter your full name" autocomplete="name" required />
+                <span class="field-error" data-auth-error="fullName"></span>
               </label>
               <label class="auth-field" for="registerEmail"><span class="field-label">Email Address <span class="required-mark" aria-hidden="true">*</span></span>
                 <input id="registerEmail" type="email" name="email" placeholder="Enter your Email" autocomplete="email" required />
+                <span class="field-error" data-auth-error="email"></span>
               </label>
-              <label class="auth-field" for="registerPhone">Mobile Number
-                <input id="registerPhone" type="tel" name="mobileNumber" placeholder="09XXXXXXXXX" autocomplete="tel" />
+              <label class="auth-field" for="registerPhone"><span class="field-label">Mobile Number <span class="required-mark" aria-hidden="true">*</span></span>
+                <input id="registerPhone" type="text" name="mobileNumber" placeholder="09XXXXXXXXX" autocomplete="tel" inputmode="numeric" maxlength="11" pattern="[0-9]*" required />
+                <span class="field-error" data-auth-error="mobileNumber"></span>
               </label>
               <label class="auth-field" for="registerPassword"><span class="field-label">Password <span class="required-mark" aria-hidden="true">*</span></span>
                 <input id="registerPassword" type="password" name="password" placeholder="Create a password" autocomplete="new-password" required />
+                <span class="field-error" data-auth-error="password"></span>
               </label>
               <label class="auth-field register-confirm-field" for="registerConfirmPassword"><span class="field-label">Confirm Password <span class="required-mark" aria-hidden="true">*</span></span>
                 <input id="registerConfirmPassword" type="password" name="confirmPassword" placeholder="Re-enter your password" autocomplete="new-password" required />
+                <span class="field-error" data-auth-error="confirmPassword"></span>
               </label>
             </div>
+            <label class="auth-terms-field" for="registerTerms">
+              <input id="registerTerms" type="checkbox" name="termsAgreement" required />
+              <span>
+                <strong>I agree to DG Film Co.&rsquo;s booking terms, privacy notice, and client account policies.</strong>
+                <button class="auth-terms-toggle" type="button" data-auth-terms-toggle aria-expanded="false">View details</button>
+                <small data-auth-terms-details hidden>By creating an account, you agree that DG Film Co. may use your contact details to manage booking requests, payment updates, and project communication.</small>
+                <span class="field-error" data-auth-error="termsAgreement"></span>
+              </span>
+            </label>
             <button type="submit" class="btn primary full">Create Account</button>
           </form>
         </article>
@@ -62,15 +77,13 @@
 
       <section class="auth-toggle-panel" aria-label="Account information">
         <div class="auth-toggle-copy auth-toggle-register">
-          <p class="eyebrow">New Client</p>
           <h2>Start a new project.</h2>
-          <p>Create your client account to submit a booking request and follow production updates.</p>
+          <p>Create an account to submit a booking request and follow project updates.</p>
           <button class="btn ghost" type="button" data-auth-switch="register">Create Account</button>
         </div>
         <div class="auth-toggle-copy auth-toggle-login">
-          <p class="eyebrow">Returning Client</p>
           <h2>Welcome back.</h2>
-          <p>Return to your portal to review bookings, payments, and delivered files.</p>
+          <p>Return to your portal to review bookings, payments, and project updates.</p>
           <button class="btn ghost" type="button" data-auth-switch="login">Log in</button>
         </div>
       </section>

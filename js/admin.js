@@ -615,7 +615,7 @@ function dgAdminScheduleMeeting(bookingId, values) {
   dgAdminAddHistory(booking, 'Meeting scheduled', currentUser);
   dgAdminSaveBookings(bookings);
   dgAdminNotifyClient(booking, 'Meeting scheduled', `Your consultation for ${booking.id} is scheduled on ${dgAdminFormatDate(booking.meetingDate)} at ${dgAdminFormatTime(booking.meetingTime)}.`, 'meeting');
-  dgAdminShowMessage(`Meeting scheduled for ${bookingId}.`);
+  dgAdminShowMessage('Meeting schedule saved.');
   return true;
 }
 
@@ -1862,37 +1862,108 @@ function dgAdminMeetingForm(booking) {
   return `
     <form class="inquiry-form compact-form" id="meetingForm" data-meeting-booking="${dgAdminEscape(booking.id)}" novalidate>
       <div class="form-grid">
-        <label>Meeting Date
-          <input type="date" name="meetingDate" min="${dgAdminToday()}" value="${dgAdminEscape(booking.meetingDate || '')}" />
+        <label><span class="field-label">Meeting Date <span class="required-mark" aria-hidden="true">*</span></span>
+          <input type="date" name="meetingDate" min="${dgAdminToday()}" value="${dgAdminEscape(booking.meetingDate || '')}" required />
+          <span class="field-error" data-error-for="meetingDate"></span>
         </label>
-        <label>Meeting Time
-          <input type="time" name="meetingTime" value="${dgAdminEscape(booking.meetingTime || '')}" />
+        <label><span class="field-label">Meeting Time <span class="required-mark" aria-hidden="true">*</span></span>
+          <input type="time" name="meetingTime" value="${dgAdminEscape(booking.meetingTime || '')}" required />
+          <span class="field-error" data-error-for="meetingTime"></span>
         </label>
-        <label>Meeting Mode
-          <select name="meetingMode">
+        <label><span class="field-label">Meeting Mode <span class="required-mark" aria-hidden="true">*</span></span>
+          <select name="meetingMode" required>
             <option value="">Choose meeting mode</option>
             ${['Online Meeting', 'Phone Call', 'In-Person Meeting'].map((mode) => `<option value="${mode}"${booking.meetingMode === mode ? ' selected' : ''}>${mode}</option>`).join('')}
           </select>
+          <span class="field-error" data-error-for="meetingMode"></span>
         </label>
-        <label>Meeting Location / Link / Contact Number
-          <input type="text" name="meetingLocation" value="${dgAdminEscape(booking.meetingLocation || '')}" placeholder="Google Meet link, phone number, studio address, or meeting place" />
+        <label><span class="field-label">Meeting Location / Link / Contact Number <span class="required-mark" aria-hidden="true">*</span></span>
+          <input type="text" name="meetingLocation" maxlength="150" value="${dgAdminEscape(booking.meetingLocation || '')}" placeholder="Google Meet link, phone number, studio address, or meeting place" required />
+          <span class="field-error" data-error-for="meetingLocation"></span>
         </label>
-        <label>Meeting Contact Name
-          <input type="text" name="meetingContactName" value="${dgAdminEscape(booking.meetingContactName || '')}" placeholder="Name of the person meeting the client" />
+        <label><span class="field-label">Meeting Contact Name <span class="required-mark" aria-hidden="true">*</span></span>
+          <input type="text" name="meetingContactName" maxlength="60" value="${dgAdminEscape(booking.meetingContactName || '')}" placeholder="Name of the person meeting the client" required />
+          <span class="field-error" data-error-for="meetingContactName"></span>
         </label>
-        <label>Meeting Contact Role
-          <input type="text" name="meetingContactRole" value="${dgAdminEscape(booking.meetingContactRole || '')}" placeholder="Example: Project Coordinator" />
+        <label><span class="field-label">Meeting Contact Role <span class="required-mark" aria-hidden="true">*</span></span>
+          <input type="text" name="meetingContactRole" maxlength="50" value="${dgAdminEscape(booking.meetingContactRole || '')}" placeholder="Example: Project Coordinator" required />
+          <span class="field-error" data-error-for="meetingContactRole"></span>
         </label>
-        <label class="wide">Meeting Contact Number or Contact Detail
-          <input type="text" name="meetingContactDetail" value="${dgAdminEscape(booking.meetingContactDetail || '')}" placeholder="Mobile number, email, or contact instruction" />
+        <label class="wide"><span class="field-label">Meeting Contact Number or Contact Detail <span class="required-mark" aria-hidden="true">*</span></span>
+          <input type="text" name="meetingContactDetail" maxlength="100" value="${dgAdminEscape(booking.meetingContactDetail || '')}" placeholder="Mobile number, email, or contact instruction" required />
+          <span class="field-error" data-error-for="meetingContactDetail"></span>
         </label>
       </div>
       <label>Meeting Notes <span class="optional">Optional</span>
-        <textarea name="meetingNotes" rows="4" placeholder="Agenda, reminders, preparation notes, or final schedule details">${dgAdminEscape(booking.meetingNotes || '')}</textarea>
+        <textarea name="meetingNotes" rows="4" maxlength="300" placeholder="Agenda, reminders, preparation notes, or final schedule details">${dgAdminEscape(booking.meetingNotes || '')}</textarea>
+        <span class="field-error" data-error-for="meetingNotes"></span>
       </label>
       <button class="btn primary" type="submit">Save Meeting Schedule</button>
     </form>
   `;
+}
+
+function dgAdminSetMeetingFieldError(form, fieldName, message) {
+  const field = form.elements[fieldName];
+  const error = form.querySelector(`[data-error-for="${fieldName}"]`);
+  if (error) error.textContent = message || '';
+  if (!field) return;
+  if (message) field.setAttribute('aria-invalid', 'true');
+  else field.removeAttribute('aria-invalid');
+}
+
+function dgAdminClearMeetingErrors(form) {
+  form.querySelectorAll('[data-error-for]').forEach((error) => {
+    error.textContent = '';
+  });
+  Array.from(form.elements).forEach((field) => field.removeAttribute('aria-invalid'));
+}
+
+function dgAdminMeetingFormValues(form) {
+  return {
+    meetingDate: form.meetingDate.value,
+    meetingTime: form.meetingTime.value,
+    meetingMode: form.meetingMode.value,
+    meetingLocation: form.meetingLocation.value.trim(),
+    meetingContactName: form.meetingContactName.value.trim(),
+    meetingContactRole: form.meetingContactRole.value.trim(),
+    meetingContactDetail: form.meetingContactDetail.value.trim(),
+    meetingNotes: form.meetingNotes.value.trim()
+  };
+}
+
+function dgAdminValidateMeetingForm(form) {
+  dgAdminClearMeetingErrors(form);
+  const values = dgAdminMeetingFormValues(form);
+  let firstInvalidField = null;
+  const fail = (fieldName, message) => {
+    dgAdminSetMeetingFieldError(form, fieldName, message);
+    if (!firstInvalidField) firstInvalidField = form.elements[fieldName];
+  };
+
+  if (!values.meetingDate) fail('meetingDate', 'Meeting date is required.');
+  else if (values.meetingDate < dgAdminToday()) fail('meetingDate', 'Meeting date cannot be in the past.');
+  if (!values.meetingTime) fail('meetingTime', 'Meeting time is required.');
+  if (!values.meetingMode) fail('meetingMode', 'Please choose a meeting mode.');
+  if (!values.meetingLocation) fail('meetingLocation', 'Meeting location, link, or contact number is required.');
+  else if (values.meetingLocation.length < 5) fail('meetingLocation', 'Meeting location, link, or contact number must be at least 5 characters.');
+  else if (values.meetingLocation.length > 150) fail('meetingLocation', 'Meeting location, link, or contact number must not exceed 150 characters.');
+  if (!values.meetingContactName) fail('meetingContactName', 'Meeting contact name is required.');
+  else if (values.meetingContactName.length < 2) fail('meetingContactName', 'Meeting contact name must be at least 2 characters.');
+  else if (values.meetingContactName.length > 60) fail('meetingContactName', 'Meeting contact name must not exceed 60 characters.');
+  else if (!/^[A-Za-z .'-]+$/.test(values.meetingContactName)) fail('meetingContactName', "Meeting contact name can only contain letters, spaces, dot, apostrophe, and hyphen.");
+  if (!values.meetingContactRole) fail('meetingContactRole', 'Meeting contact role is required.');
+  else if (values.meetingContactRole.length < 2) fail('meetingContactRole', 'Meeting contact role must be at least 2 characters.');
+  else if (values.meetingContactRole.length > 50) fail('meetingContactRole', 'Meeting contact role must not exceed 50 characters.');
+  if (!values.meetingContactDetail) fail('meetingContactDetail', 'Meeting contact detail is required.');
+  else if (values.meetingContactDetail.length < 5) fail('meetingContactDetail', 'Meeting contact detail must be at least 5 characters.');
+  else if (values.meetingContactDetail.length > 100) fail('meetingContactDetail', 'Meeting contact detail must not exceed 100 characters.');
+  else if ((/^\d+$/.test(values.meetingContactDetail) || /^(?:09|\+?63)/.test(values.meetingContactDetail)) && !/^09\d{9}$/.test(values.meetingContactDetail)) {
+    fail('meetingContactDetail', 'Mobile contact number must be 11 digits and start with 09.');
+  }
+  if (values.meetingNotes.length > 300) fail('meetingNotes', 'Meeting notes must not exceed 300 characters.');
+
+  return { valid: !firstInvalidField, values, firstInvalidField };
 }
 
 function dgAdminContextActionCard(title, content, extraClass = '', id = '') {
@@ -2643,42 +2714,40 @@ function dgAdminRenderDetails() {
 
   const meetingForm = document.getElementById('meetingForm');
   if (meetingForm) {
+    Array.from(meetingForm.elements).forEach((field) => {
+      if (!field.name) return;
+      const clearError = () => dgAdminSetMeetingFieldError(meetingForm, field.name, '');
+      field.addEventListener('input', clearError);
+      field.addEventListener('change', clearError);
+    });
     meetingForm.addEventListener('submit', (event) => {
       event.preventDefault();
+      const result = dgAdminValidateMeetingForm(meetingForm);
+      if (!result.valid) {
+        result.firstInvalidField.focus();
+        result.firstInvalidField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
       const meetingSubmitBtn = meetingForm.querySelector('[type="submit"]');
       const runSchedule = () => {
         if (window.DGLoading) { DGLoading.show('Scheduling meeting…'); DGLoading.disableButton(meetingSubmitBtn); }
         let changed = false;
         try {
-          changed = dgAdminScheduleMeeting(meetingForm.dataset.meetingBooking, {
-            meetingDate: meetingForm.meetingDate.value,
-            meetingTime: meetingForm.meetingTime.value,
-            meetingMode: meetingForm.meetingMode.value,
-            meetingLocation: meetingForm.meetingLocation.value.trim(),
-            meetingContactName: meetingForm.meetingContactName.value.trim(),
-            meetingContactRole: meetingForm.meetingContactRole.value.trim(),
-            meetingContactDetail: meetingForm.meetingContactDetail.value.trim(),
-            meetingNotes: meetingForm.meetingNotes.value.trim()
-          });
+          changed = dgAdminScheduleMeeting(meetingForm.dataset.meetingBooking, result.values);
         } finally {
           if (window.DGLoading) { DGLoading.hide(); DGLoading.enableButton(meetingSubmitBtn); }
         }
         if (changed) dgAdminRenderDetails();
       };
-      const replacingSchedule = Boolean(booking.meetingDate || booking.meetingTime || booking.meetingLocation);
-      if (replacingSchedule) {
-        dgAdminConfirmAction({
-          title: 'Replace this meeting schedule?',
-          message: 'This will update the existing consultation schedule for this booking.',
-          confirmText: 'Update Schedule',
-          cancelText: 'Keep Current',
-          variant: 'warning',
-          details: [`Booking ID: ${booking.id}`, `Client: ${booking.clientName}`],
-          onConfirm: runSchedule
-        });
-      } else {
-        runSchedule();
-      }
+      dgAdminConfirmAction({
+        title: 'Save meeting schedule?',
+        message: 'Are you sure you want to save this meeting schedule and share it with the client?',
+        confirmText: 'Save Schedule',
+        cancelText: 'Cancel',
+        variant: 'warning',
+        details: [`Booking ID: ${booking.id}`, `Client: ${booking.clientName}`],
+        onConfirm: runSchedule
+      });
     });
   }
 }
